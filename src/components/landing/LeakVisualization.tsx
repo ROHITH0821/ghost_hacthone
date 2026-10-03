@@ -1,221 +1,268 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
 
-type Particle = {
-  id: number;
-  t: number;
+interface LeakVisualizationProps {
+  fixesOn: boolean;
+  introFinished: boolean;
+  isReducedMotion?: boolean;
+}
+
+interface PathSample {
+  x: number;
+  y: number;
+  nx: number;
+  ny: number;
+  angle: number;
+}
+
+interface Particle {
+  progress: number;
   speed: number;
   size: number;
   opacity: number;
-  wobbleOffset: number;
-  leakedAt?: boolean;
-  leakX?: number;
-  leakY?: number;
-  leakVx?: number;
-  leakVy?: number;
-  tint?: number;
-};
+  laneOffset: number;
+  wobbleSpeed: number;
+  wobblePhase: number;
+  leaked: boolean;
+  leakX: number;
+  leakY: number;
+  leakVx: number;
+  leakVy: number;
+  tint: number;
+}
 
 const STATIONS = [
-  { id: 'HOME', t: 0.1, label: 'HOME' },
-  { id: 'SERVICES', t: 0.35, label: 'SERVICES' },
-  { id: 'PRICING', t: 0.65, label: 'PRICING' },
-  { id: 'BOOK', t: 0.85, label: 'BOOK' },
+  { id: "HOME", t: 0.12, label: "HOME" },
+  { id: "SERVICES", t: 0.36, label: "SERVICES", fixTag: "Clearer service guide", crackSize: "small", leakRate: 0.15, sev: "−15% LEAK" },
+  { id: "PRICING", t: 0.62, label: "PRICING", fixTag: "Starting price added", crackSize: "large", leakRate: 0.35, sev: "−35% LEAK · HIGH" },
+  { id: "BOOK", t: 0.84, label: "BOOK", fixTag: "Reviews beside CTA", crackSize: "medium", leakRate: 0.20, sev: "−20% LEAK · MED" },
+] as const;
+
+const QUOTES = [
+  { stationId: "SERVICES", text: "Which one is actually for me?", persona: "First-timer" },
+  { stationId: "PRICING", text: "Contact for details? I’ll check elsewhere.", persona: "Budget buyer" },
+  { stationId: "BOOK", text: "No reviews here… not sure.", persona: "Skeptic" },
 ];
 
-const LEAKS = [
-  { stationId: 'SERVICES', t: 0.35, size: 'small', rate: 0.15, quote: "Which one is actually for me?", persona: "First-timer" },
-  { stationId: 'PRICING', t: 0.65, size: 'large', rate: 0.35, quote: "Contact for details? I'll check elsewhere.", persona: "Budget buyer" },
-  { stationId: 'BOOK', t: 0.85, size: 'medium', rate: 0.20, quote: "No reviews here… not sure.", persona: "Skeptic" }
-];
-
-export function LeakVisualization({ fixesOn, introFinished }: { fixesOn: boolean; introFinished: boolean }) {
+export function LeakVisualization({ fixesOn, introFinished, isReducedMotion }: LeakVisualizationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
+  const [dimensions, setDimensions] = useState({ w: 1200, h: 360 });
   const [isMobile, setIsMobile] = useState(false);
-  const [dimensions, setDimensions] = useState({ w: 1000, h: 440 });
-  const [quotes, setQuotes] = useState<{ id: number; text: string; persona: string; x: number; y: number }[]>([]);
-  const [inView, setInView] = useState(true);
+  const [activeQuote, setActiveQuote] = useState<{ text: string; persona: string; stationIndex: number; key: number } | null>(null);
 
-  const stateRef = useRef({
-    particles: [] as Particle[],
-    fixesOn: false,
-    introFinished: false,
-    isMobile: false,
-    w: 1000, h: 440,
-    activeQuotes: [] as { id: number; text: string; persona: string; x: number; y: number; time: number }[]
-  });
-  
-  stateRef.current.fixesOn = fixesOn;
-  stateRef.current.introFinished = introFinished;
-  stateRef.current.isMobile = isMobile;
-  stateRef.current.w = dimensions.w;
-  stateRef.current.h = dimensions.h;
-
+  // Resize observation
   useEffect(() => {
-    const handleResize = () => {
+    const updateSize = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const mobile = window.innerWidth < 900;
       setIsMobile(mobile);
-      setDimensions({ w: rect.width, h: mobile ? 520 : 440 });
+      setDimensions({
+        w: Math.max(rect.width, 320),
+        h: mobile ? 520 : Math.max(rect.height, 300),
+      });
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    
-    // Intersection observer to pause rendering
-    const obs = new IntersectionObserver(([entry]) => {
-      setInView(entry.isIntersecting);
+
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  // Quotes trigger every ~3.2s when fixes are OFF
+  useEffect(() => {
+    if (fixesOn || isReducedMotion) {
+      setActiveQuote(null);
+      return;
+    }
+
+    let quoteIdx = 0;
+    const interval = setInterval(() => {
+      const q = QUOTES[quoteIdx % QUOTES.length];
+      const stationIdx = q.stationId === "SERVICES" ? 1 : q.stationId === "PRICING" ? 2 : 3;
+      setActiveQuote({
+        text: q.text,
+        persona: q.persona,
+        stationIndex: stationIdx,
+        key: Date.now(),
+      });
+      quoteIdx++;
+    }, 3200);
+
+    return () => clearInterval(interval);
+  }, [fixesOn, isReducedMotion]);
+
+  // Compute SVG Path string based on dimensions
+  const pathD = useMemo(() => {
+    const { w, h } = dimensions;
+    if (isMobile) {
+      // Mobile: Vertical journey (pipe runs top -> bottom, stations stacked, particles flow downward)
+      const cx = w * 0.5;
+      const dx = Math.min(22, w * 0.06);
+      return `M ${cx} 15 C ${cx - dx} ${h * 0.28}, ${cx + dx} ${h * 0.58}, ${cx} ${h - 25}`;
+    } else {
+      // Desktop: Horizontal gentle S-curve across the full width
+      const cy = h * 0.52;
+      const dy = Math.min(24, h * 0.08);
+      return `M 0 ${cy} C ${w * 0.24} ${cy - dy}, ${w * 0.44} ${cy - dy}, ${w * 0.56} ${cy + dy * 0.8} S ${w * 0.82} ${cy + dy * 0.2}, ${w} ${cy}`;
+    }
+  }, [dimensions, isMobile]);
+
+  // Precompute path samples using an offscreen SVG path
+  const samples = useMemo<PathSample[]>(() => {
+    if (typeof document === "undefined") return [];
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathD);
+    const totalLength = path.getTotalLength() || 1;
+    const count = 500;
+    const arr: PathSample[] = [];
+
+    for (let i = 0; i <= count; i++) {
+      const l = (i / count) * totalLength;
+      const pt = path.getPointAtLength(l);
+      const ptNext = path.getPointAtLength(Math.min(totalLength, l + 1));
+      const dx = ptNext.x - pt.x;
+      const dy = ptNext.y - pt.y;
+      const len = Math.hypot(dx, dy) || 1;
+      arr.push({
+        x: pt.x,
+        y: pt.y,
+        nx: -dy / len,
+        ny: dx / len,
+        angle: Math.atan2(dy, dx),
+      });
+    }
+    return arr;
+  }, [pathD]);
+
+  // Path point helper
+  const getPointAtT = React.useCallback((t: number): PathSample => {
+    if (!samples.length) return { x: 0, y: 0, nx: 0, ny: 1, angle: 0 };
+    const idx = Math.min(samples.length - 1, Math.max(0, Math.floor(t * (samples.length - 1))));
+    return samples[idx];
+  }, [samples]);
+
+  // State ref for canvas loop to avoid per-frame React updates
+  const canvasState = useRef({
+    particles: [] as Particle[],
+    fixesOn: false,
+    isVisible: true,
+  });
+
+  canvasState.current.fixesOn = fixesOn;
+
+  // IntersectionObserver & Visibility API for pausing
+  useEffect(() => {
+    const handleVis = () => {
+      canvasState.current.isVisible = !document.hidden;
+    };
+    document.addEventListener("visibilitychange", handleVis);
+
+    const observer = new IntersectionObserver(([entry]) => {
+      canvasState.current.isVisible = entry.isIntersecting && !document.hidden;
     });
-    if (containerRef.current) obs.observe(containerRef.current);
-    
+    if (containerRef.current) observer.observe(containerRef.current);
+
     return () => {
-      window.removeEventListener("resize", handleResize);
-      obs.disconnect();
+      document.removeEventListener("visibilitychange", handleVis);
+      observer.disconnect();
     };
   }, []);
 
-  const getPathPoint = (t: number, w: number, h: number, mobile: boolean) => {
-    let p0, p1, p2, p3;
-    if (mobile) {
-      p0 = { x: w * 0.5, y: 0 };
-      p1 = { x: w * 0.5, y: h * 0.4 };
-      p2 = { x: w * 0.5, y: h * 0.6 };
-      p3 = { x: w * 0.5, y: h };
-    } else {
-      p0 = { x: -50, y: h * 0.4 };
-      p1 = { x: w * 0.4, y: h * 0.4 };
-      p2 = { x: w * 0.6, y: h * 0.6 };
-      p3 = { x: w + 50, y: h * 0.6 };
-    }
-    const mt = 1 - t;
-    const x = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
-    const y = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
-    
-    const dx = 3*mt*mt*(p1.x-p0.x) + 6*mt*t*(p2.x-p1.x) + 3*t*t*(p3.x-p2.x);
-    const dy = 3*mt*mt*(p1.y-p0.y) + 6*mt*t*(p2.y-p1.y) + 3*t*t*(p3.y-p2.y);
-    const len = Math.sqrt(dx*dx + dy*dy);
-    const nx = -dy / len;
-    const ny = dx / len;
-    
-    return { x, y, nx, ny };
-  };
-
+  // Main Canvas Particle Loop
   useEffect(() => {
+    if (isReducedMotion) return;
     const canvas = canvasRef.current;
-    if (!canvas || !inView) return;
+    if (!canvas || !samples.length) return;
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    let animationFrameId: number;
+    let animId: number;
     let lastTime = performance.now();
-    let quoteTimer = 0;
-    let quoteId = 0;
 
-    const spawnParticle = (): Particle => {
-      const state = stateRef.current;
-      return {
-        id: Math.random(),
-        t: state.introFinished ? (Math.random() * -0.1) : -0.1, 
-        speed: 0.0004 + Math.random() * 0.0003,
-        size: 2.5 + Math.random() * 1.0,
-        opacity: 0.55 + Math.random() * 0.3,
-        wobbleOffset: Math.random() * Math.PI * 2
-      };
-    };
+    const maxParticles = isMobile ? 60 : 120;
 
-    if (stateRef.current.particles.length === 0) {
-      const pCount = stateRef.current.isMobile ? 60 : 120;
-      for (let i = 0; i < pCount; i++) {
-        const p = spawnParticle();
-        p.t = Math.random(); 
-        stateRef.current.particles.push(p);
+    const spawnParticle = (startNearZero = true): Particle => ({
+      progress: startNearZero ? Math.random() * -0.05 : Math.random(),
+      speed: (isMobile ? 0.0003 : 0.00035) + Math.random() * 0.00015,
+      size: 2.5 + Math.random() * 1.0,
+      opacity: 0.55 + Math.random() * 0.3,
+      laneOffset: (Math.random() - 0.5) * (isMobile ? 24 : 32),
+      wobbleSpeed: 0.002 + Math.random() * 0.002,
+      wobblePhase: Math.random() * Math.PI * 2,
+      leaked: false,
+      leakX: 0,
+      leakY: 0,
+      leakVx: 0,
+      leakVy: 0,
+      tint: 0,
+    });
+
+    // Populate initial particles
+    if (canvasState.current.particles.length === 0) {
+      const arr: Particle[] = [];
+      for (let i = 0; i < maxParticles; i++) {
+        arr.push(spawnParticle(false));
       }
+      canvasState.current.particles = arr;
     }
 
+    const crackTs = [0.36, 0.62, 0.84];
+    const leakRates = [0.15, 0.35, 0.20];
+
     const render = (time: number) => {
-      const dt = Math.min(time - lastTime, 50); // cap dt
+      animId = requestAnimationFrame(render);
+      if (!canvasState.current.isVisible) return;
+
+      const dt = Math.min(time - lastTime, 40);
       lastTime = time;
-      
-      const state = stateRef.current;
-      const dpr = window.devicePixelRatio || 1;
-      
-      canvas.width = state.w * dpr;
-      canvas.height = state.h * dpr;
+
+      const { w, h } = dimensions;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+      if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+      }
+
+      ctx.save();
       ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, state.w, state.h);
+      ctx.clearRect(0, 0, w, h);
 
-      // Grid background
-      ctx.fillStyle = "#E6E6E1";
-      for (let x = (time * 0.01) % 20; x < state.w; x += 20) {
-        for (let y = 0; y < state.h; y += 20) {
-          ctx.beginPath();
-          ctx.arc(x, y, 0.8, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
+      const fixes = canvasState.current.fixesOn;
+      const currentParticles = canvasState.current.particles;
+      const nextParticles: Particle[] = [];
 
-      // Edge fade gradients
-      const grad = ctx.createLinearGradient(0, 0, state.w, 0);
-      grad.addColorStop(0, "rgba(255,255,255,1)");
-      grad.addColorStop(0.1, "rgba(255,255,255,0)");
-      grad.addColorStop(0.9, "rgba(255,255,255,0)");
-      grad.addColorStop(1, "rgba(255,255,255,1)");
-      
-      // Pipe
-      ctx.strokeStyle = "#0A0A0C";
-      ctx.lineWidth = 1;
-      ctx.globalAlpha = 0.2;
-      const pipeRadius = 22;
-      
-      for (let offset of [-pipeRadius, pipeRadius]) {
-        ctx.beginPath();
-        for (let i = 0; i <= 100; i++) {
-          const t = i / 100;
-          const pt = getPathPoint(t, state.w, state.h, state.isMobile);
-          const px = pt.x + pt.nx * offset;
-          const py = pt.y + pt.ny * offset;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.stroke();
-      }
+      for (let i = 0; i < currentParticles.length; i++) {
+        const p = currentParticles[i];
 
-      ctx.globalAlpha = 1;
+        if (!p.leaked) {
+          p.progress += p.speed * dt;
 
-      // Update particles
-      const newParticles: Particle[] = [];
-      const mobile = state.isMobile;
-      
-      // Calculate active particles multiplier for thick end stream
-      let endMultiplier = state.fixesOn ? 1.5 : 1.0;
-
-      for (let p of state.particles) {
-        if (!p.leakedAt) {
-          p.t += p.speed * dt;
-          if (p.t > 1) {
-            newParticles.push(spawnParticle());
+          if (p.progress >= 1) {
+            nextParticles.push(spawnParticle(true));
             continue;
           }
 
-          if (!state.fixesOn && p.t > 0 && p.t < 1) {
-            for (let leak of LEAKS) {
-              if (Math.abs(p.t - leak.t) < 0.005 && Math.random() < leak.rate * 0.2) {
-                p.leakedAt = true;
-                p.tint = 0;
-                const pt = getPathPoint(p.t, state.w, state.h, mobile);
-                const wobble = Math.sin(time * 0.005 + p.wobbleOffset) * (pipeRadius - 5);
-                p.leakX = pt.x + pt.nx * wobble;
-                p.leakY = pt.y + pt.ny * wobble;
-                
-                if (mobile) {
-                  p.leakVx = (Math.random() > 0.5 ? 1 : -1) * (0.5 + Math.random());
-                  p.leakVy = Math.random() * 0.5;
-                } else {
-                  p.leakVx = (Math.random() - 0.5) * 0.5;
+          // Check leaks at crack stations when fixes are OFF
+          if (!fixes && p.progress > 0) {
+            for (let c = 0; c < 3; c++) {
+              if (Math.abs(p.progress - crackTs[c]) < 0.007 && Math.random() < leakRates[c] * 0.28) {
+                p.leaked = true;
+                const sample = getPointAtT(p.progress);
+                p.leakX = sample.x + sample.nx * p.laneOffset;
+                p.leakY = sample.y + sample.ny * p.laneOffset;
+                if (isMobile) {
+                  // Leaks drift sideways on mobile
+                  p.leakVx = (Math.random() > 0.5 ? 1 : -1) * (1.2 + Math.random() * 1.5);
                   p.leakVy = 0.5 + Math.random() * 0.5;
+                } else {
+                  // Leaks drift downward with gravity on desktop
+                  p.leakVx = (Math.random() - 0.5) * 0.6;
+                  p.leakVy = 1.0 + Math.random() * 1.5;
                 }
                 break;
               }
@@ -223,187 +270,455 @@ export function LeakVisualization({ fixesOn, introFinished }: { fixesOn: boolean
           }
         }
 
-        if (p.leakedAt && p.leakX !== undefined && p.leakY !== undefined && p.leakVx !== undefined && p.leakVy !== undefined) {
+        if (p.leaked) {
           p.leakVx *= 0.98;
-          p.leakVy += 0.02; // gravity
-          
+          if (isMobile) {
+            p.leakVy += 0.02;
+          } else {
+            p.leakVy += 0.06; // gravity
+          }
           p.leakX += p.leakVx;
           p.leakY += p.leakVy;
-          
-          p.tint = Math.min(1, (p.tint || 0) + 0.015);
-          p.opacity *= 0.98;
+          p.tint = Math.min(1, p.tint + 0.03);
+          p.opacity *= 0.96;
 
-          const cr = 10 + (255 - 10) * p.tint;
-          const cg = 10 + (74 - 10) * p.tint;
-          const cb = 12 + (28 - 12) * p.tint;
+          if (p.opacity < 0.05) {
+            nextParticles.push(spawnParticle(true));
+            continue;
+          }
 
-          ctx.fillStyle = `rgba(${cr},${cg},${cb},${p.opacity})`;
+          // Interpolate from ink (#0A0A0C) to ember (#FF4A1C)
+          const r = Math.round(10 + (255 - 10) * p.tint);
+          const g = Math.round(10 + (74 - 10) * p.tint);
+          const b = Math.round(12 + (28 - 12) * p.tint);
+
+          ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${p.opacity.toFixed(3)})`;
           ctx.beginPath();
           ctx.arc(p.leakX, p.leakY, p.size, 0, Math.PI * 2);
           ctx.fill();
-          
-          if (p.opacity > 0.05) newParticles.push(p);
-          else newParticles.push(spawnParticle());
-        } else {
-          const pt = getPathPoint(Math.max(0, p.t), state.w, state.h, mobile);
-          const wobble = Math.sin(time * 0.003 + p.wobbleOffset) * (pipeRadius - p.size);
-          const x = pt.x + pt.nx * wobble;
-          const y = pt.y + pt.ny * wobble;
+          nextParticles.push(p);
+        } else if (p.progress >= 0) {
+          const sample = getPointAtT(p.progress);
+          const wobble = Math.sin(time * p.wobbleSpeed + p.wobblePhase) * 3;
+          const x = sample.x + sample.nx * (p.laneOffset + wobble);
+          const y = sample.y + sample.ny * (p.laneOffset + wobble);
 
-          ctx.fillStyle = `rgba(10,10,12,${p.opacity})`;
+          ctx.fillStyle = `rgba(10, 10, 12, ${p.opacity.toFixed(3)})`;
           ctx.beginPath();
           ctx.arc(x, y, p.size, 0, Math.PI * 2);
           ctx.fill();
-          newParticles.push(p);
+          nextParticles.push(p);
+        } else {
+          nextParticles.push(p);
         }
       }
-      
-      // If fixes on, slowly add more particles to end stream
-      if (state.fixesOn && state.particles.length < (mobile ? 60 : 120) * 1.5) {
-        if (Math.random() < 0.1) {
-          const p = spawnParticle();
-          p.t = 0.8;
-          newParticles.push(p);
+
+      // If fixes ON, spawn slightly more particles at the end to make stream visibly thicker
+      if (fixes && nextParticles.length < maxParticles * 1.35) {
+        if (Math.random() < 0.15) {
+          const extra = spawnParticle(false);
+          extra.progress = 0.75 + Math.random() * 0.2;
+          nextParticles.push(extra);
         }
       }
-      
-      state.particles = newParticles;
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, state.w, state.h);
 
-      if (!state.fixesOn) {
-        quoteTimer += dt;
-        if (quoteTimer > 3000) {
-          quoteTimer = 0;
-          const leak = LEAKS[Math.floor(Math.random() * LEAKS.length)];
-          const pt = getPathPoint(leak.t, state.w, state.h, mobile);
-          
-          state.activeQuotes.push({
-            id: quoteId++,
-            text: leak.quote,
-            persona: leak.persona,
-            x: mobile ? pt.x + 50 : pt.x,
-            y: mobile ? pt.y : pt.y - 60,
-            time
-          });
-        }
-      } else {
-        state.activeQuotes = [];
-      }
-
-      state.activeQuotes = state.activeQuotes.filter(q => time - q.time < 2800);
-      setQuotes([...state.activeQuotes]);
-
-      animationFrameId = requestAnimationFrame(render);
+      canvasState.current.particles = nextParticles;
+      ctx.restore();
     };
 
-    animationFrameId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [inView]);
+    animId = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(animId);
+  }, [dimensions, samples, isReducedMotion, isMobile, getPointAtT]);
+
+  // Reduced motion static fallback
+  if (isReducedMotion) {
+    return (
+      <div className="w-full h-full flex flex-col md:flex-row items-center justify-center gap-6 p-6">
+        <div className="w-full max-w-sm p-4 rounded-xl border border-line bg-white shadow-xs">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-[11px] text-ember-text font-semibold uppercase">Fixes Off · Leaking</span>
+            <span className="font-mono text-[11px] bg-ember-soft text-ember-text px-2 py-0.5 rounded-full">Low Conversion</span>
+          </div>
+          <p className="text-sm text-graphite font-serif italic mb-2">“Contact for details? I’ll check elsewhere.”</p>
+          <div className="text-[12px] font-mono text-ash">−35% Friction at Pricing</div>
+        </div>
+        <div className="w-full max-w-sm p-4 rounded-xl border border-line bg-white shadow-xs">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-[11px] text-resolved font-semibold uppercase">Fixes On · Stitched</span>
+            <span className="font-mono text-[11px] bg-emerald-50 text-resolved px-2 py-0.5 rounded-full">High Conversion</span>
+          </div>
+          <p className="text-sm text-ink mb-2 font-medium">Starting price added · Reviews beside CTA</p>
+          <div className="text-[12px] font-mono text-resolved">Friction Resolved · High End Stream</div>
+        </div>
+      </div>
+    );
+  }
+
+  const pipeHalf = isMobile ? 18 : 22;
 
   return (
-    <div ref={containerRef} className="absolute inset-0 w-full h-full overflow-hidden">
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }} />
-      
-      {/* HTML OVERLAYS */}
-      <div className="absolute inset-0 pointer-events-none z-10">
-        
-        {/* Stations */}
-        {STATIONS.map((st) => {
-          const pt = getPathPoint(st.t, dimensions.w, dimensions.h, isMobile);
+    <div ref={containerRef} className="relative w-full h-full select-none overflow-hidden" aria-hidden="true">
+      {/* ── 1. Dotted Background Grid fading at edges ── */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-45"
+        style={{
+          backgroundImage: `radial-gradient(circle, #D8D8D3 1px, transparent 1px)`,
+          backgroundSize: "22px 22px",
+          maskImage: isMobile
+            ? "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)"
+            : "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
+          WebkitMaskImage: isMobile
+            ? "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)"
+            : "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
+        }}
+      />
+
+      {/* ── 2. SVG Pipe Hairlines (~44px tall pipe) ── */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+        <defs>
+          <linearGradient id="pipeFade" x1={isMobile ? "0%" : "0%"} y1={isMobile ? "0%" : "0%"} x2={isMobile ? "0%" : "100%"} y2={isMobile ? "100%" : "0%"}>
+            <stop offset="0%" stopColor="#0A0A0C" stopOpacity="0" />
+            <stop offset="8%" stopColor="#0A0A0C" stopOpacity="0.22" />
+            <stop offset="92%" stopColor="#0A0A0C" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#0A0A0C" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Draw upper and lower hairlines */}
+        {samples.length > 0 && (
+          <>
+            <path
+              d={samples.reduce((acc, s, idx) => {
+                const px = s.x + s.nx * -pipeHalf;
+                const py = s.y + s.ny * -pipeHalf;
+                return idx === 0 ? `M ${px} ${py}` : `${acc} L ${px} ${py}`;
+              }, "")}
+              fill="none"
+              stroke="url(#pipeFade)"
+              strokeWidth="1.2"
+              vectorEffect="non-scaling-stroke"
+            />
+            <path
+              d={samples.reduce((acc, s, idx) => {
+                const px = s.x + s.nx * pipeHalf;
+                const py = s.y + s.ny * pipeHalf;
+                return idx === 0 ? `M ${px} ${py}` : `${acc} L ${px} ${py}`;
+              }, "")}
+              fill="none"
+              stroke="url(#pipeFade)"
+              strokeWidth="1.2"
+              vectorEffect="non-scaling-stroke"
+            />
+          </>
+        )}
+      </svg>
+
+      {/* ── 3. Canvas Particle Layer ── */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10" />
+
+      {/* ── 4. Stations along the path ── */}
+      <div className="absolute inset-0 pointer-events-none z-20">
+        {STATIONS.map((st, idx) => {
+          const pt = getPointAtT(st.t);
+          if (!pt || pt.x === 0) return null;
+
+          // Position card: on desktop directly above top hairline, on mobile centered on station
+          const cardX = isMobile ? pt.x : pt.x;
+          const cardY = isMobile ? pt.y : pt.y - 22 - 48 - 6;
+
           return (
-            <div key={st.id} 
-                 className="absolute transform -translate-x-1/2 -translate-y-1/2 bg-white border border-line rounded-[12px] shadow-sm flex flex-col items-center justify-center transition-all duration-500"
-                 style={{ 
-                   left: pt.x, 
-                   top: pt.y, 
-                   width: '140px', 
-                   height: '96px',
-                   opacity: introFinished ? 1 : 0,
-                   transform: `translate(-50%, -50%) scale(${introFinished ? 1 : 0.92})`
-                 }}>
-              <div className="text-[10px] font-mono text-graphite mb-2">{st.label}</div>
-              <div className="w-[80px] h-[40px] border border-line rounded-[6px] bg-fog opacity-50"></div>
-              
-              {/* Fix Tag */}
-              {fixesOn && (
-                <div className="absolute -bottom-8 whitespace-nowrap bg-resolved text-white text-[10px] font-mono px-2 py-1 rounded-[4px] shadow-md animate-fade-in-up">
-                  {st.id === 'SERVICES' ? "Clearer service guide" : st.id === 'PRICING' ? "Starting price added" : st.id === 'BOOK' ? "Reviews beside CTA" : ""}
+            <div
+              key={st.id}
+              className="absolute transition-transform duration-500"
+              style={{
+                left: `${cardX}px`,
+                top: `${cardY}px`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              {/* Mono Label ABOVE card */}
+              <div className="text-center mb-1">
+                <span className="font-mono text-[9px] sm:text-[10px] tracking-[0.06em] uppercase text-graphite font-semibold bg-white/80 px-1.5 py-0.5 rounded shadow-2xs">
+                  {st.label}
+                </span>
+              </div>
+
+              {/* Hairline Page Card (140×96px on desktop, slightly more compact 120×80px on small mobile) */}
+              <div className="w-[124px] sm:w-[140px] h-[82px] sm:h-[96px] bg-white rounded-[12px] border border-line shadow-[0_2px_8px_rgba(10,10,12,0.04)] overflow-hidden flex flex-col transition-shadow duration-300">
+                {/* Mini browser top bar */}
+                <div className="h-3.5 sm:h-4 border-b border-[#EEEFEB] bg-mist/60 px-2 flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D0D1CA]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D0D1CA]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D0D1CA]" />
+                  <div className="mx-auto w-10 sm:w-12 h-1.5 rounded-full bg-line/80" />
+                </div>
+
+                {/* Tiny Wireframe Content Inside */}
+                <div className="flex-1 p-1.5 sm:p-2 flex flex-col justify-between">
+                  {st.id === "HOME" && (
+                    <>
+                      <div className="space-y-1">
+                        <div className="w-10 sm:w-12 h-1.5 sm:h-2 rounded bg-ink/75" />
+                        <div className="w-14 sm:w-16 h-1 rounded bg-ash/40" />
+                      </div>
+                      <div className="w-6 sm:w-7 h-1.5 sm:h-2 rounded-full bg-ink" />
+                      <div className="grid grid-cols-3 gap-1 pt-1 border-t border-[#F0F0EC]">
+                        <div className="h-3 sm:h-4 rounded bg-fog" />
+                        <div className="h-3 sm:h-4 rounded bg-fog" />
+                        <div className="h-3 sm:h-4 rounded bg-fog" />
+                      </div>
+                    </>
+                  )}
+
+                  {st.id === "SERVICES" && (
+                    <>
+                      <div className="space-y-0.5">
+                        <div className="w-12 sm:w-14 h-1.5 rounded bg-ink/75" />
+                        <div className="w-16 sm:w-20 h-1 rounded bg-ash/40" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 my-auto">
+                        <div className="h-5 sm:h-7 rounded border border-line/80 bg-fog/40 p-0.5 sm:p-1 flex flex-col justify-between">
+                          <div className="w-1.5 h-1.5 rounded-full bg-line" />
+                          <div className="w-6 h-1 rounded bg-ash/40" />
+                        </div>
+                        <div className="h-5 sm:h-7 rounded border border-line/80 bg-fog/40 p-0.5 sm:p-1 flex flex-col justify-between">
+                          <div className="w-1.5 h-1.5 rounded-full bg-line" />
+                          <div className="w-6 h-1 rounded bg-ash/40" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {st.id === "PRICING" && (
+                    <>
+                      <div className="w-8 sm:w-10 h-1.5 rounded bg-ink/75" />
+                      <div className="grid grid-cols-3 gap-0.5 sm:gap-1 my-auto">
+                        <div className="h-6 sm:h-8 rounded border border-line/70 bg-fog/30 p-0.5 flex flex-col justify-between items-center">
+                          <div className="w-3 h-1 rounded bg-ink/60" />
+                          <div className="w-2.5 h-1 rounded bg-line" />
+                          <div className="w-4 h-1 rounded bg-ash/40" />
+                        </div>
+                        <div className="h-7 sm:h-9 rounded border border-ink/40 bg-white p-0.5 shadow-2xs flex flex-col justify-between items-center -mt-0.5">
+                          <div className="w-3 h-1 rounded bg-ink" />
+                          <div className="w-2.5 h-1 rounded bg-line" />
+                          <div className="w-4 h-1.5 rounded bg-ink" />
+                        </div>
+                        <div className="h-6 sm:h-8 rounded border border-line/70 bg-fog/30 p-0.5 flex flex-col justify-between items-center">
+                          <div className="w-3 h-1 rounded bg-ink/60" />
+                          <div className="w-2.5 h-1 rounded bg-line" />
+                          <div className="w-4 h-1 rounded bg-ash/40" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {st.id === "BOOK" && (
+                    <>
+                      <div className="w-10 sm:w-12 h-1.5 rounded bg-ink/75" />
+                      <div className="flex gap-1.5 sm:gap-2 my-auto items-center">
+                        <div className="grid grid-cols-3 gap-0.5 p-0.5 sm:p-1 rounded bg-fog/70">
+                          {Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-2xs bg-line" />
+                          ))}
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="w-full h-1 sm:h-1.5 rounded bg-line/80" />
+                          <div className="w-3/4 h-1 sm:h-1.5 rounded bg-line/80" />
+                          <div className="w-5 sm:w-6 h-1.5 sm:h-2 rounded-full bg-ink" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Fix Tag (when Fixes ON) */}
+              {"fixTag" in st && fixesOn && (
+                <div
+                  className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white border border-resolved/30 text-resolved font-mono text-[9px] sm:text-[10px] font-medium px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 animate-fadeIn"
+                  style={{ animationDelay: `${idx * 150}ms` }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-resolved" />
+                  {st.fixTag}
                 </div>
               )}
             </div>
           );
         })}
 
-        {/* Leaks */}
-        {LEAKS.map((leak) => {
-          const pt = getPathPoint(leak.t, dimensions.w, dimensions.h, isMobile);
+        {/* ── 5. Cracks, Halos, Stitches on the Pipe ── */}
+        {STATIONS.filter((s) => "crackSize" in s).map((st, i) => {
+          const pt = getPointAtT(st.t);
+          if (!pt) return null;
+
+          const crackX = isMobile ? pt.x + (i % 2 === 0 ? -pipeHalf - 12 : pipeHalf + 12) : pt.x + pt.nx * 22;
+          const crackY = isMobile ? pt.y : pt.y + pt.ny * 22;
+
           return (
-            <div key={`leak-${leak.stationId}`}
-                 className="absolute transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300"
-                 style={{ left: pt.x, top: pt.y + 30 }}>
+            <div
+              key={`crack-${st.id}`}
+              className="absolute"
+              style={{
+                left: `${crackX}px`,
+                top: `${crackY}px`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
               {!fixesOn ? (
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-4 h-4 text-ember relative">
-                    <div className="absolute inset-0 animate-ping rounded-full bg-ember opacity-40"></div>
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                /* Cracks when OFF */
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute -inset-2.5 rounded-full bg-ember/25 blur-xs animate-ping" />
+                  <div className="absolute -inset-1.5 rounded-full bg-ember/35 blur-2xs animate-pulse" />
+
+                  <svg
+                    viewBox="0 0 24 16"
+                    className={cn(
+                      "relative text-ember fill-none stroke-current drop-shadow-[0_0_6px_rgba(255,74,28,0.7)]",
+                      st.crackSize === "large" ? "w-6 h-4" : st.crackSize === "medium" ? "w-5 h-3.5" : "w-4 h-3"
+                    )}
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M 2 1 L 7 11 L 12 4 L 17 14 L 22 2" />
+                  </svg>
+
+                  <div className="mt-1.5 whitespace-nowrap font-mono text-[9px] sm:text-[10px] font-bold text-ember-text bg-ember-soft border border-ember/25 px-1.5 sm:px-2 py-0.5 rounded-full shadow-2xs">
+                    {st.sev}
                   </div>
-                  <div className="text-[10px] font-mono text-ember-text font-bold bg-ember-soft px-1.5 rounded">{leak.size.toUpperCase()} LEAK</div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-4 h-4 text-resolved relative">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12l5 5L20 7"/></svg>
+                /* Stitches when ON */
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute -inset-2 rounded-full bg-resolved/20 blur-xs transition-opacity duration-1000 opacity-60" />
+
+                  <svg viewBox="0 0 28 12" className="w-6 sm:w-7 h-2.5 sm:h-3 text-resolved fill-none stroke-current" strokeWidth="2.2" strokeLinecap="round">
+                    <line x1="2" y1="2" x2="6" y2="10" className="stitch-anim" style={{ animationDelay: `${i * 180}ms` }} />
+                    <line x1="8" y1="2" x2="12" y2="10" className="stitch-anim" style={{ animationDelay: `${i * 180 + 80}ms` }} />
+                    <line x1="14" y1="2" x2="18" y2="10" className="stitch-anim" style={{ animationDelay: `${i * 180 + 160}ms` }} />
+                    <line x1="20" y1="2" x2="24" y2="10" className="stitch-anim" style={{ animationDelay: `${i * 180 + 240}ms` }} />
+                  </svg>
+
+                  <div className="mt-1 whitespace-nowrap font-mono text-[8px] sm:text-[9px] font-semibold text-resolved bg-emerald-50 border border-resolved/30 px-1.5 sm:px-2 py-0.5 rounded-full shadow-2xs">
+                    SEALED
                   </div>
-                  <div className="text-[10px] font-mono text-resolved-text font-bold">FIXED</div>
                 </div>
               )}
             </div>
           );
         })}
 
-        {/* Quotes */}
-        {quotes.map(q => (
-          <div key={q.id} 
-               className="absolute bg-white border border-line px-3 py-2 rounded-full shadow-lg transform -translate-x-1/2 transition-all duration-1000 ease-out"
-               style={{ 
-                 left: q.x, 
-                 top: q.y, 
-                 opacity: 1, 
-                 animation: 'quoteRise 2.5s ease-out forwards' 
-               }}>
-            <div className="font-serif italic text-ink text-[14px] whitespace-nowrap">{q.text}</div>
-            <div className="font-mono text-[9px] text-ash mt-0.5 ml-1">{q.persona}</div>
-          </div>
-        ))}
+        {/* ── 6. Quote Bubbles rising near cracks ── */}
+        {activeQuote && !fixesOn && (
+          (() => {
+            const st = STATIONS[activeQuote.stationIndex];
+            const pt = getPointAtT(st.t);
+            return (
+              <div
+                key={activeQuote.key}
+                className="absolute quote-bubble pointer-events-none"
+                style={{
+                  left: isMobile ? `${pt.x}px` : `${pt.x}px`,
+                  top: isMobile ? `${pt.y + 20}px` : `${pt.y + 44}px`,
+                  transform: "translate(-50%, 0)",
+                }}
+              >
+                <div className="bg-white/95 backdrop-blur-sm border border-line rounded-full px-3 py-1 sm:px-3.5 sm:py-1.5 shadow-[0_4px_16px_rgba(10,10,12,0.08)] flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+                  <span className="font-serif italic text-ink text-[12px] sm:text-[13px] tracking-tight">
+                    “{activeQuote.text}”
+                  </span>
+                  <span className="font-mono text-[9px] sm:text-[10px] text-ash-text border-l border-line pl-1.5 sm:pl-2 uppercase">
+                    {activeQuote.persona}
+                  </span>
+                </div>
+              </div>
+            );
+          })()
+        )}
 
-        {/* Finish Marker */}
-        <div className="absolute flex flex-col items-center transform -translate-x-1/2 -translate-y-1/2"
-             style={{ 
-               left: getPathPoint(0.95, dimensions.w, dimensions.h, isMobile).x,
-               top: getPathPoint(0.95, dimensions.w, dimensions.h, isMobile).y,
-             }}>
-          <div className="text-[10px] font-mono text-ink mb-1 whitespace-nowrap">ENQUIRY / BOOKED</div>
-          <div className={`font-mono text-[12px] font-bold px-3 py-1 rounded-full transition-colors duration-500 ${fixesOn ? 'bg-spectral text-resolved shadow-[0_0_15px_rgba(18,161,94,0.3)]' : 'bg-ember-soft text-ember-text'}`}>
-             REACHING THE END · {fixesOn ? 'HIGH' : 'LOW'}
-          </div>
-        </div>
+        {/* ── 7. Finish Marker: "ENQUIRY / BOOKED" ── */}
+        {samples.length > 0 && (() => {
+          const finishPt = getPointAtT(0.97);
+          return (
+            <div
+              className="absolute transition-transform duration-500"
+              style={{
+                left: `${finishPt.x}px`,
+                top: `${finishPt.y}px`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <div className="flex flex-col items-center">
+                <div className="font-mono text-[9px] sm:text-[10px] tracking-[0.06em] uppercase text-graphite font-semibold mb-1 whitespace-nowrap bg-white/80 px-1.5 py-0.5 rounded shadow-2xs">
+                  ENQUIRY / BOOKED
+                </div>
 
+                <div
+                  className={cn(
+                    "font-mono text-[10px] sm:text-[11px] font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border transition-all duration-500 whitespace-nowrap shadow-xs",
+                    fixesOn
+                      ? "bg-emerald-50 text-resolved border-resolved/40 animate-pulse shadow-[0_0_12px_rgba(18,161,94,0.2)]"
+                      : "bg-ember-soft text-ember-text border-ember/25"
+                  )}
+                >
+                  REACHING THE END · {fixesOn ? "HIGH" : "LOW"}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
+      {/* Animation Styles */}
       <style>{`
-        @keyframes quoteRise {
-          0% { transform: translate(-50%, 10px) scale(0.9); opacity: 0; }
-          10% { transform: translate(-50%, 0px) scale(1); opacity: 1; }
-          80% { transform: translate(-50%, -20px) scale(1); opacity: 1; }
-          100% { transform: translate(-50%, -30px) scale(0.95); opacity: 0; }
+        @keyframes quoteFloat {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, 8px) scale(0.94);
+          }
+          15% {
+            opacity: 1;
+            transform: translate(-50%, -4px) scale(1);
+          }
+          85% {
+            opacity: 1;
+            transform: translate(-50%, -18px) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translate(-50%, -28px) scale(0.96);
+          }
         }
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        .quote-bubble {
+          animation: quoteFloat 3.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.4s ease-out forwards;
+
+        @keyframes stitchDraw {
+          from {
+            stroke-dashoffset: 14;
+          }
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        .stitch-anim {
+          stroke-dasharray: 14;
+          stroke-dashoffset: 0;
+          animation: stitchDraw 500ms ease-out forwards;
+        }
+
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: translate(-50%, 4px) scale(0.92);
+          }
+          to {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeInScale 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
       `}</style>
     </div>
