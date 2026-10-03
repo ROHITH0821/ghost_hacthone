@@ -405,8 +405,38 @@ input, select, textarea { accent-color: var(--color-ink); }
 input::placeholder, textarea::placeholder { color: var(--color-ash-text); opacity: 1; }
 input:disabled { cursor: not-allowed; }
 select option { background: var(--color-paper); color: var(--color-ink); }
-.skip-link { position: fixed; left: 16px; top: -100px; z-index: 200; padding: 12px 20px; background: var(--color-ink); color: var(--color-paper); border-radius: 999px; font-weight: 500; }
-.skip-link:focus { top: 12px; }
+.skip-link {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  z-index: 200;
+  padding: 12px 20px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  border-radius: 999px;
+  font-weight: 500;
+  opacity: 0;
+  pointer-events: none;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  opacity: 1;
+  pointer-events: auto;
+}
 .product-section { padding-block: clamp(72px, 10vw, 144px); }
 .product-container { width: 100%; max-width: 1240px; margin-inline: auto; }
 .eyebrow { font-family: var(--font-mono), ui-monospace, monospace; color: var(--color-ash-text); font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }

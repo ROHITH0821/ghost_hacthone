@@ -20,7 +20,7 @@ export function Footer() {
             <p className="mono-label mb-4 text-ash-text">Talk to us</p>
             <ul className="space-y-1 text-[15px]">
               <li><a href="https://wa.me/918019013032" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-graphite transition-colors hover:text-ink">Contact</a></li>
-              <li><a href="https://webauraindia.com" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-10 items-center text-graphite transition-colors hover:text-ink">Built by WebAura ↗</a></li>
+              <li><button type="button" className="inline-flex min-h-10 items-center text-graphite transition-colors hover:text-ink">Built by WebAura</button></li>
             </ul>
           </div>
         </div>

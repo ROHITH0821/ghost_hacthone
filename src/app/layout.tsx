@@ -64,7 +64,7 @@ export default async function RootLayout({
       <body
         className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable} relative min-h-screen bg-paper text-ink antialiased`}
       >
-        <a href="#main-content" className="skip-link">Skip to content</a>
+        <a href="#main-content" className="skip-link sr-only focus:not-sr-only">Skip to content</a>
         <SiteBackground />
         <div className="relative z-10">
           <PreferencesProvider><AuthProvider initialUser={initialUser}>{children}</AuthProvider></PreferencesProvider>
