@@ -880,3 +880,33 @@ export async function findLatestDeepMissionForUser(input: {
   });
 }
 
+const MISSION_ID_PATTERN = /^mission-[a-z0-9-]{8,40}$/i;
+
+/** Deletes only this user's audits. Related fixes cascade; rescans lose a missing baseline. */
+export async function deleteAuditsForUser(input: {
+  userId: string;
+  missionIds: string[];
+}): Promise<{ deleted: Array<{ id: string; domain: string }> }> {
+  const ids = [...new Set(input.missionIds)].filter((id) => MISSION_ID_PATTERN.test(id));
+  if (ids.length === 0 || ids.length > 50) return { deleted: [] };
+
+  const owned = await db.mission.findMany({
+    where: { userId: input.userId, id: { in: ids } },
+    select: { id: true, domain: true },
+  });
+  if (owned.length === 0) return { deleted: [] };
+
+  const ownedIds = owned.map((mission) => mission.id);
+  await db.$transaction([
+    db.mission.updateMany({
+      where: { userId: input.userId, baselineMissionId: { in: ownedIds } },
+      data: { baselineMissionId: null },
+    }),
+    db.mission.deleteMany({
+      where: { userId: input.userId, id: { in: ownedIds } },
+    }),
+  ]);
+
+  return { deleted: owned };
+}
+

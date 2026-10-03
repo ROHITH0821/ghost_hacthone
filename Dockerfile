@@ -10,13 +10,19 @@ FROM mcr.microsoft.com/playwright:v1.61.1-jammy
 WORKDIR /app
 
 # Install deps (incl. dev deps — needed for `next build` + `prisma generate`).
+# postinstall runs `prisma generate`, so the schema must exist before `npm ci`.
 COPY package.json package-lock.json ./
-RUN npm ci
+COPY prisma ./prisma
+# Generate only reads these names; it does not connect. Real values come from
+# the host at runtime. A declared ARG lets Railway override the placeholder.
+ARG DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
+ARG DIRECT_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres
+RUN DATABASE_URL="$DATABASE_URL" DIRECT_URL="$DIRECT_URL" npm ci
 
 # Build: `npm run build` runs `prisma generate && next build`. Neither needs a
 # live database, so no secrets are required at build time.
 COPY . .
-RUN npm run build
+RUN DATABASE_URL="$DATABASE_URL" DIRECT_URL="$DIRECT_URL" npm run build
 
 ENV NODE_ENV=production
 # Next respects the PORT env var; hosts inject it. Default to 3000.

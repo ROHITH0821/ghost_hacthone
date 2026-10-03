@@ -174,6 +174,7 @@ export const copy = {
 
   dashboardFilters: {
     savePreset: "Save filter",
+    deletePreset: "Delete filter",
     presetNamePlaceholder: "Preset name",
     clear: "Clear filters",
     dateFrom: "From",
@@ -190,6 +191,12 @@ export const copy = {
     markImplemented: "Mark implemented",
     confirmOpen: (n: number) => `Open ${n} reports in new tabs?`,
     maxOpen: "Select at most 10 complete audits to open.",
+    delete: "Delete",
+    confirmDelete: (n: number) =>
+      n === 1
+        ? "Delete this audit? Its report and recommended fixes will be removed."
+        : `Delete ${n} audits? Their reports and recommended fixes will be removed.`,
+    deleteFailed: "The audit could not be deleted. Nothing was removed. Try again.",
   },
 
   dashboardAuditSetup: {
@@ -529,6 +536,8 @@ export const copy = {
     },
     intelInProgress: "Competitor research",
     viewComparisons: "Comparisons",
+    delete: "Delete",
+    deleting: "Deleting…",
   },
 
   dashboardPlan: {

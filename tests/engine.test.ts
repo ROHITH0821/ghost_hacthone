@@ -59,9 +59,27 @@ test('aggregation derives counts and never invents revenue from simulations',()=
  assert.match(validated.revenue_estimate.assumptions[0],/Unavailable/);
  assert.equal(validated.leaks[0].rank,1);
 });
-test('fabricated quotes and unsupported affected counts are rejected',()=>{
+test('fabricated quotes and unsupported affected counts never reach a report',()=>{
+ // A report whose only finding is unsupported is still rejected.
  assert.throws(()=>validateAggregation({...report,leaks:[{...report.leaks[0],best_quotes:['Invented complaint']}]},[journey]),/supporting/);
- assert.throws(()=>validateAggregation({...report,leaks:[{...report.leaks[0],personas_affected:2}]},[journey]),/exceeds/);
+ // Affected counts are clamped to the available evidence.
+ assert.equal(validateAggregation({...report,leaks:[{...report.leaks[0],personas_affected:2}]},[journey]).leaks[0].personas_affected,1);
+});
+test('one unsupported finding is dropped instead of discarding the whole audit',()=>{
+ const good=report.leaks[0];
+ const validated=validateAggregation({...report,leaks:[{...good,best_quotes:['Invented complaint']},good]},[journey]);
+ assert.equal(validated.leaks.length,1);
+ assert.deepEqual(validated.leaks[0].best_quotes,good.best_quotes);
+ assert.equal(validated.leaks[0].rank,1);
+ // Fabricated quotes are removed from an otherwise supported finding.
+ const mixed=validateAggregation({...report,leaks:[{...good,best_quotes:[...good.best_quotes,'Invented complaint']}]},[journey]);
+ assert.deepEqual(mixed.leaks[0].best_quotes,good.best_quotes);
+});
+test('quotes differing only in whitespace or typography resolve to the exact original text',()=>{
+ const original=journey.verbatim_complaint;
+ const variant=`  \u201C${original.replace(/ /g,'  ')}\u201D `;
+ const validated=validateAggregation({...report,leaks:[{...report.leaks[0],best_quotes:[variant]}]},[journey]);
+ assert.deepEqual(validated.leaks[0].best_quotes,[original]);
 });
 test('severity and importance are constrained at the schema boundary',()=>{
  assert.equal(PersonaJourneySchema.safeParse({...journey,severity:90}).success,false);

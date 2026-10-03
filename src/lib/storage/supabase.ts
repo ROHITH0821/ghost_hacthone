@@ -106,3 +106,25 @@ export async function uploadAgencyLogo(input: {
   return { publicUrl };
 }
 
+/** Best-effort removal of a mission's PDF and preview. Never throws. */
+export async function removeMissionReportFiles(input: {
+  missionId: string;
+  domain: string;
+}): Promise<void> {
+  try {
+    const supabase = getSupabaseAdminClient();
+    const bucket = getBucket();
+    const domain = safeSlug(input.domain) || "site";
+    const folder = `reports/${domain}/${input.missionId}`;
+    const { error } = await supabase.storage.from(bucket).remove([
+      `${folder}/ghost-report.pdf`,
+      `${folder}/preview.png`,
+    ]);
+    if (error) {
+      console.error("[storage] report cleanup failed:", error.message);
+    }
+  } catch (error) {
+    console.error("[storage] report cleanup failed:", error);
+  }
+}
+

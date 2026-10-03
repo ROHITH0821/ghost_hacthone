@@ -6,6 +6,7 @@ import type { GhostReport, MissionState } from "@/lib/types";
 import { FeedbackState } from "@/components/ui/FeedbackState";
 import type { ReportViewMode } from "@/lib/entitlements/report-access";
 import { MissionDashboard } from "@/components/mission/MissionDashboard";
+import { AuditTheater } from "@/components/mission/AuditTheater";
 import { copy } from "@/lib/copy";
 import { redirectToLogin } from "@/lib/auth/redirect-to-login";
 
@@ -98,13 +99,8 @@ export function MissionPageClient({ missionId }: MissionPageClientProps) {
 
   if (error) return <main id="main-content" className="mx-auto max-w-xl px-6 py-24"><FeedbackState title="Audit progress is unavailable" description="Your connection may have been interrupted, or this audit may no longer be accessible." onRetry={() => setAttempt(n => n + 1)} /></main>;
 
-  if (!mission) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet/30 border-t-violet" />
-      </div>
-    );
-  }
+  // The story starts the moment the page opens — before the first status arrives.
+  if (!mission) return <main id="main-content" tabIndex={-1}><AuditTheater mission={null} /></main>;
 
   return <MissionDashboard mission={mission} report={report} viewMode={viewMode} />;
 }

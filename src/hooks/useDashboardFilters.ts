@@ -59,6 +59,7 @@ export function useDashboardFilters<T extends Record<string, string>>({
 
   const applyPreset = useCallback(
     (preset: SavedFilterPreset<T>) => {
+      setPresetName(preset.name);
       setFilters(preset.filters);
     },
     [setFilters]
@@ -69,7 +70,7 @@ export function useDashboardFilters<T extends Record<string, string>>({
     if (!name) return null;
     const preset = savePreset(pageKey, userId, name, filters);
     setPresets(loadSavedPresets<T>(pageKey, userId));
-    setPresetName("");
+    setPresetName(preset.name);
     return preset;
   }, [filters, pageKey, presetName, userId]);
 

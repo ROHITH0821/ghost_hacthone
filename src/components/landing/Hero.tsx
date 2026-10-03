@@ -9,7 +9,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { dashboardNewAuditHref } from "@/lib/auth/new-audit-href";
 import { redirectToLogin } from "@/lib/auth/redirect-to-login";
 import { useIntroReady } from "./intro/gate";
-import { INTRO_DONE_EVENT, INTRO_SEEN_KEY } from "./intro/script";
 import { normalizeWebsiteInput } from "@/lib/website-input";
 
 const EXAMPLE_DOMAINS = ["yourbusiness.com", "bridalstudio.in", "smiledental.co", "northbakery.com", "lumenyoga.studio"];
@@ -45,20 +44,7 @@ function useTypingPlaceholder(active: boolean) {
   return active ? text : EXAMPLE_DOMAINS[0];
 }
 
-/** The page-level intro gate may still arm `data-intro="play"`; this hero has no
- *  intro, so release it immediately (keeps the nav logo and reveals in sync). */
-function useReleaseIntro() {
-  useEffect(() => {
-    const html = document.documentElement;
-    if (html.dataset.intro !== "play") return;
-    try { sessionStorage.setItem(INTRO_SEEN_KEY, "1"); } catch { /* optional */ }
-    html.setAttribute("data-intro", "done");
-    window.dispatchEvent(new Event(INTRO_DONE_EVENT));
-  }, []);
-}
-
 const TRUST = ["No tracking code to install", "Findings tied to page evidence", "Fixes you can review and use"];
-const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function Hero() {
   const [url, setUrl] = useState("");
@@ -66,7 +52,6 @@ export function Hero() {
   const [focused, setFocused] = useState(false);
   const router = useRouter();
   const { user, loading } = useAuth();
-  useReleaseIntro();
   const ready = useIntroReady();
   const reduced = useReducedMotion();
   const placeholder = useTypingPlaceholder(ready && !reduced && !focused && !url);
@@ -88,18 +73,16 @@ export function Hero() {
       </div>
 
       <div className="mx-auto flex w-full max-w-[1040px] flex-col items-center text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
-          className="inline-flex items-center gap-2.5 rounded-full border border-line bg-paper py-1.5 pl-2.5 pr-3.5 text-graphite"
+        <p
+          style={{ ["--d" as string]: 0 }}
+          className="hero-fade inline-flex items-center gap-2.5 rounded-full border border-line bg-paper py-1.5 pl-2.5 pr-3.5 text-graphite"
         >
           <span aria-hidden className="ember-dot" />
           <span className="mono-label">AI website audits · Early access</span>
-        </motion.p>
+        </p>
 
         <h1 className="mt-7 font-heading text-[clamp(42px,6.4vw,88px)] font-[560] leading-[1] tracking-[-0.045em] text-ink">
-          <span className="block">
+          <span className="hero-line" style={{ ["--line" as string]: 0 }}><span>
             Find the{" "}
             <span className="relative inline-block">
               <span className="serif-accent text-[1.08em] leading-none tracking-[-0.02em]">friction</span>
@@ -117,13 +100,13 @@ export function Hero() {
                 />
               </svg>
             </span>.
-          </span>
-          <span className="block">Make the next visit count.</span>
+          </span></span>
+          <span className="hero-line" style={{ ["--line" as string]: 1 }}><span>Make the next visit count.</span></span>
         </h1>
 
-        <p className="mt-6 max-w-[54ch] text-[17px] leading-[1.6] text-graphite md:text-[19px]">Ghost reviews your website through AI customer journeys. Find what makes buying difficult, see the evidence, and get a clear plan to fix it.</p>
+        <p style={{ ["--d" as string]: 1 }} className="hero-fade mt-6 max-w-[54ch] text-[17px] leading-[1.6] text-graphite md:text-[19px]">Ghost reviews your website through AI customer journeys. Find what makes buying difficult, see the evidence, and get a clear plan to fix it.</p>
 
-        <form onSubmit={start} className="mt-10 w-full max-w-[640px]" noValidate>
+        <form onSubmit={start} style={{ ["--d" as string]: 2 }} className="hero-fade mt-10 w-full max-w-[640px]" noValidate>
           <label htmlFor="hero-url" className="sr-only">Your website</label>
           <div className="flex flex-col gap-2.5 sm:h-16 sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:border sm:border-line sm:bg-paper sm:p-1.5 sm:pl-6 sm:shadow-[0_1px_2px_rgba(10,10,12,0.04),0_18px_44px_-22px_rgba(10,10,12,0.28)] sm:transition-[border-color,box-shadow] sm:duration-300 sm:focus-within:border-ember/40 sm:focus-within:shadow-[var(--ring-ember)]">
             <div className="relative flex h-14 min-w-0 flex-1 items-center rounded-full border border-line bg-paper px-5 shadow-[0_1px_2px_rgba(10,10,12,0.04)] transition-[border-color,box-shadow] duration-300 focus-within:border-ember/40 focus-within:shadow-[var(--ring-ember)] sm:h-full sm:rounded-none sm:border-0 sm:px-0 sm:shadow-none sm:focus-within:shadow-none">
@@ -136,11 +119,11 @@ export function Hero() {
           <p id="hero-note" className="mt-4 text-[13px] text-ash-text">Sign in to request access. Review your setup before any audit starts.</p>
         </form>
 
-        <a href="#sample" className="group mt-5 inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-ink underline decoration-line decoration-1 underline-offset-[6px] transition-[text-decoration-color] hover:decoration-ink">
+        <a href="#sample" style={{ ["--d" as string]: 3 }} className="hero-fade group mt-5 inline-flex min-h-11 items-center gap-2 text-[15px] font-medium text-ink underline decoration-line decoration-1 underline-offset-[6px] transition-[text-decoration-color] hover:decoration-ink">
           Explore an example report <ArrowRight aria-hidden className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
         </a>
 
-        <ul className="mt-14 flex flex-wrap items-center justify-center gap-y-3 border-t border-line pt-6">
+        <ul style={{ ["--d" as string]: 4 }} className="hero-fade mt-14 flex flex-wrap items-center justify-center gap-y-3 border-t border-line pt-6">
           {TRUST.map((text, i) => (
             <li key={text} className={`mono-label flex items-center gap-2 px-5 text-[11px] text-graphite ${i > 0 ? "sm:border-l sm:border-line" : ""}`}>
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-resolved" />

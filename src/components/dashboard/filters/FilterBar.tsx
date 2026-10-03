@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { BookmarkPlus, SlidersHorizontal, X } from "lucide-react";
+import { BookmarkPlus, SlidersHorizontal, Trash2, X } from "lucide-react";
 import { copy } from "@/lib/copy";
 import type { SavedFilterPreset } from "@/lib/dashboard/filters";
 
@@ -30,6 +30,9 @@ export function FilterBar<T extends Record<string, string>>({
 }: FilterBarProps<T>) {
   const [expanded, setExpanded] = useState(false);
   const controlsId = useId();
+  const namedPreset = presets.find(
+    (preset) => preset.name.toLowerCase() === presetName.trim().toLowerCase()
+  );
   return (
     <div className="space-y-3">
       <button type="button" aria-expanded={expanded} aria-controls={controlsId} onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-sm text-muted-light sm:hidden">
@@ -56,6 +59,19 @@ export function FilterBar<T extends Record<string, string>>({
           >
             <BookmarkPlus className="h-4 w-4" />
             {copy.dashboardFilters.savePreset}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!namedPreset) return;
+              onRemovePreset(namedPreset.id);
+              onPresetNameChange("");
+            }}
+            disabled={!namedPreset}
+            className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border/60 px-3 text-sm font-medium text-muted-light hover:border-danger/40 hover:text-danger disabled:opacity-40"
+          >
+            <Trash2 className="h-4 w-4" />
+            {copy.dashboardFilters.deletePreset}
           </button>
           {hasActiveFilters && (
             <button

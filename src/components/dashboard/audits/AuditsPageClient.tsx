@@ -4,6 +4,7 @@ import { FeedbackState } from "@/components/ui/FeedbackState";
 
 import { memo, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
 import { LocalTime } from "@/components/ui/LocalTime";
 import { BulkSelectBar } from "@/components/dashboard/BulkSelectBar";
@@ -34,14 +35,21 @@ const STATUS_STYLES: Record<string, string> = {
 
 type ClientOption = { id: string; name: string; primaryDomain: string };
 
+const deleteButtonClass =
+  "inline-flex min-h-9 items-center rounded-full border border-danger/30 bg-danger/10 px-3 text-sm font-medium text-danger transition-colors hover:bg-danger/15 disabled:opacity-40";
+
 const AuditTableRow = memo(function AuditTableRow({
   mission,
   selected,
+  deleting,
   onToggle,
+  onDelete,
 }: {
   mission: AuditMissionRow;
   selected: boolean;
+  deleting: boolean;
   onToggle: (id: string) => void;
+  onDelete: (mission: AuditMissionRow) => void;
 }) {
   const stage = mission.progress?.currentStage ?? "opening";
   const progress =
@@ -132,37 +140,47 @@ const AuditTableRow = memo(function AuditTableRow({
         <LocalTime date={mission.createdAt} />
       </td>
       <td className="px-4 py-3 text-right">
-        {mission.status === "complete" && (
-          <div className="flex justify-end gap-2">
-            <Link
-              href={`/results/${mission.id}`}
-              className="text-sm text-violet hover:underline"
-            >
-              Report
-            </Link>
-            {mission.auditType === "deep" && (
+        <div className="flex items-center justify-end gap-3">
+          {mission.status === "complete" && (
+            <>
               <Link
-                href={comparisonsHref}
+                href={`/results/${mission.id}`}
                 className="text-sm text-violet hover:underline"
               >
-                {copy.dashboardAudits.viewComparisons}
+                Report
               </Link>
-            )}
-            <a aria-label={`Download report for ${mission.domain}`} href={`/api/reports/${mission.id}/pdf?download=1`} className="text-muted-light">
-              <Download className="h-4 w-4" />
-            </a>
-          </div>
-        )}
-        {mission.status === "running" && (
-          <Link href={`/mission/${mission.id}`} className="text-sm text-violet hover:underline">
-            Live
-          </Link>
-        )}
-        {mission.status === "error" && (
-          <Link href={dashboardNewAuditHref(mission.url)} className="text-sm text-violet hover:underline">
-            Retry
-          </Link>
-        )}
+              {mission.auditType === "deep" && (
+                <Link
+                  href={comparisonsHref}
+                  className="text-sm text-violet hover:underline"
+                >
+                  {copy.dashboardAudits.viewComparisons}
+                </Link>
+              )}
+              <a aria-label={`Download report for ${mission.domain}`} href={`/api/reports/${mission.id}/pdf?download=1`} className="text-muted-light">
+                <Download className="h-4 w-4" />
+              </a>
+            </>
+          )}
+          {mission.status === "running" && (
+            <Link href={`/mission/${mission.id}`} className="text-sm text-violet hover:underline">
+              Live
+            </Link>
+          )}
+          {mission.status === "error" && (
+            <Link href={dashboardNewAuditHref(mission.url)} className="text-sm text-violet hover:underline">
+              Retry
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => onDelete(mission)}
+            disabled={deleting}
+            className={deleteButtonClass}
+          >
+            {deleting ? copy.dashboardAudits.deleting : copy.dashboardAudits.delete}
+          </button>
+        </div>
       </td>
     </tr>
   );
@@ -170,7 +188,10 @@ const AuditTableRow = memo(function AuditTableRow({
 
 export function AuditsPageClient() {
   const { user, isAgencyUser } = useDashboard();
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [actionError, setActionError] = useState("");
 
   const {
     filters,
@@ -253,6 +274,37 @@ export function AuditsPageClient() {
     }
   }, [completeSelected]);
 
+  const deleteAudits = useCallback(async (missions: AuditMissionRow[]) => {
+    if (missions.length === 0) return;
+    if (!window.confirm(copy.dashboardBulk.confirmDelete(missions.length))) return;
+
+    const ids = missions.map((mission) => mission.id);
+    setActionError("");
+    setDeletingIds((prev) => new Set([...prev, ...ids]));
+    try {
+      const response = await fetch("/api/dashboard/audits", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      });
+      if (!response.ok) throw new Error("Delete failed");
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const id of ids) next.delete(id);
+        return next;
+      });
+      await queryClient.invalidateQueries({ queryKey: dashboardKeys.all });
+    } catch {
+      setActionError(copy.dashboardBulk.deleteFailed);
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        for (const id of ids) next.delete(id);
+        return next;
+      });
+    }
+  }, [queryClient]);
+
   if (isPending && !data) return <DashboardPageLoading />;
   if (isError) return <FeedbackState title="Couldn’t load audits" description="Check your connection and try again. Your saved work has not changed." onRetry={() => void refetch()} />;
 
@@ -264,6 +316,10 @@ export function AuditsPageClient() {
         </h2>
         <p className="mt-2 text-sm text-muted">{copy.dashboardAudits.subtitle}</p>
       </header>
+
+      {actionError && (
+        <p role="alert" className="text-sm text-danger">{actionError}</p>
+      )}
 
       <FilterBar
         presets={presets}
@@ -361,7 +417,9 @@ export function AuditsPageClient() {
                     key={m.id}
                     mission={m}
                     selected={selected.has(m.id)}
+                    deleting={deletingIds.has(m.id)}
                     onToggle={toggleSelect}
+                    onDelete={(mission) => void deleteAudits([mission])}
                   />
                 ))}
               </tbody>
@@ -408,6 +466,14 @@ export function AuditsPageClient() {
                         {copy.dashboardAudits.viewComparisons}
                       </Link>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => void deleteAudits([m])}
+                      disabled={deletingIds.has(m.id)}
+                      className={`mt-3 ${deleteButtonClass}`}
+                    >
+                      {deletingIds.has(m.id) ? copy.dashboardAudits.deleting : copy.dashboardAudits.delete}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -429,6 +495,12 @@ export function AuditsPageClient() {
             label: copy.dashboardBulk.downloadPdfs,
             onClick: downloadPdfs,
             disabled: completeSelected.length === 0,
+          },
+          {
+            label: deletingIds.size > 0 ? copy.dashboardAudits.deleting : copy.dashboardBulk.delete,
+            onClick: () => void deleteAudits(selectedMissions),
+            disabled: deletingIds.size > 0,
+            tone: "danger",
           },
         ]}
       />

@@ -10,6 +10,7 @@ import { FAQ } from "@/components/landing/FAQ";
 import { CTASection } from "@/components/landing/CTASection";
 import { copy } from "@/lib/copy";
 import { INTRO_GATE_SCRIPT } from "@/components/landing/intro/script";
+import { IntroGhost } from "@/components/landing/intro/IntroGhost";
 import { SmoothScroll } from "@/components/landing/fx/SmoothScroll";
 import { CursorTrail } from "@/components/landing/fx/CursorTrail";
 
@@ -29,6 +30,7 @@ export default function HomePage() {
     <main id="main-content" tabIndex={-1} className="relative min-h-screen">
       {/* Decides before first paint whether the once-per-session intro plays. */}
       <script dangerouslySetInnerHTML={{ __html: INTRO_GATE_SCRIPT }} />
+      <IntroGhost />
       <SmoothScroll />
       <CursorTrail />
       <script

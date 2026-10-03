@@ -6,15 +6,15 @@
   "crons": [
     {
       "path": "/api/cron/run-missions",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/finalize-missions",
-      "schedule": "*/10 * * * *"
+      "schedule": "30 0 * * *"
     },
     {
       "path": "/api/cron/sync-analytics",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 1 * * *"
     }
   ]
 }

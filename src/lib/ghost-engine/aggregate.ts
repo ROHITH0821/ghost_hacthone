@@ -50,18 +50,27 @@ export async function aggregate(
   owner: OwnerContext = {},
   trafficEvidence?: TrafficSupplement | null,
 ): Promise<GrowthLeakReport> {
-  const response = await parseStructuredWithTimeout("aggregate", (signal) => anthropic().messages.parse({
-    model: MODEL,
-    max_tokens: MAX_TOKENS_REPORT,
-    thinking: STRUCTURED_THINKING,
-    system: ghostSystemWithTraffic("Summarize audit evidence", trafficEvidence ? `${AGGREGATION_SYSTEM}\n\n${TRAFFIC_AGGREGATION}` : AGGREGATION_SYSTEM, Boolean(trafficEvidence)),
-    messages: auditMessages(contextPack, "Produce an evidence-grounded report from these simulated journeys.", { flows, journeys }, owner, trafficEvidence),
-    output_config: { format: zodOutputFormat(GrowthLeakReportSchema) },
-  }, { signal, maxRetries: 0 }));
+  // One fresh attempt if the model returns nothing parseable or nothing evidence-backed;
+  // the journeys are expensive, so a single bad report must not discard the audit.
+  for (let attempt = 0; ; attempt++) {
+    const response = await parseStructuredWithTimeout("aggregate", (signal) => anthropic().messages.parse({
+      model: MODEL,
+      max_tokens: MAX_TOKENS_REPORT,
+      thinking: STRUCTURED_THINKING,
+      system: ghostSystemWithTraffic("Summarize audit evidence", trafficEvidence ? `${AGGREGATION_SYSTEM}\n\n${TRAFFIC_AGGREGATION}` : AGGREGATION_SYSTEM, Boolean(trafficEvidence)),
+      messages: auditMessages(contextPack, "Produce an evidence-grounded report from these simulated journeys.", { flows, journeys }, owner, trafficEvidence),
+      output_config: { format: zodOutputFormat(GrowthLeakReportSchema) },
+    }, { signal, maxRetries: 0 }));
 
-  const report = response.parsed_output;
-  if (!report) {
-    throw new Error(`Aggregation returned no parseable report (stop_reason=${response.stop_reason}).`);
+    try {
+      const report = response.parsed_output;
+      if (!report) {
+        throw new Error(`Aggregation returned no parseable report (stop_reason=${response.stop_reason}).`);
+      }
+      return validateAggregation(report, journeys);
+    } catch (error) {
+      if (attempt >= 1) throw error;
+      console.warn(JSON.stringify({ event: "aggregate.retry", reason: error instanceof Error ? error.message : String(error) }));
+    }
   }
-  return validateAggregation(report, journeys);
 }

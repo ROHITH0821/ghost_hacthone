@@ -169,7 +169,9 @@ export function savePreset<T>(
   name: string,
   filters: T
 ): SavedFilterPreset<T> {
-  const presets = loadSavedPresets<T>(pageKey, userId);
+  const presets = loadSavedPresets<T>(pageKey, userId).filter(
+    (preset) => preset.name.toLowerCase() !== name.trim().toLowerCase()
+  );
   const preset: SavedFilterPreset<T> = {
     id: `preset-${Date.now().toString(36)}`,
     name: name.trim(),

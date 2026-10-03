@@ -3,7 +3,9 @@ import { listClientsForUser } from "@/lib/db/clients";
 import { isAgencyUser } from "@/lib/db/agency-workspace";
 import { requireDashboardUser } from "@/lib/dashboard/require-shell";
 import { auditsFiltersToQuery, parseAuditsFilters } from "@/lib/dashboard/filters";
-import { getAuditsForUser } from "@/lib/db/missions";
+import { deleteAuditsForUser, getAuditsForUser } from "@/lib/db/missions";
+import { removeMissionReportFiles } from "@/lib/storage/supabase";
+import { copy } from "@/lib/copy";
 
 export async function GET(request: NextRequest) {
   const auth = await requireDashboardUser();
@@ -29,4 +31,33 @@ export async function GET(request: NextRequest) {
       primaryDomain: c.primaryDomain,
     })),
   });
+}
+
+export async function DELETE(request: NextRequest) {
+  const auth = await requireDashboardUser();
+  if ("error" in auth) return auth.error;
+
+  const body = await request.json().catch(() => null);
+  const ids = Array.isArray(body?.ids)
+    ? body.ids.filter((id: unknown): id is string => typeof id === "string")
+    : [];
+  if (ids.length === 0 || ids.length > 50) {
+    return NextResponse.json({ error: copy.dashboardBulk.deleteFailed }, { status: 400 });
+  }
+
+  const { deleted } = await deleteAuditsForUser({
+    userId: auth.userId,
+    missionIds: ids,
+  });
+  if (deleted.length === 0) {
+    return NextResponse.json({ error: "Audit not found." }, { status: 404 });
+  }
+
+  await Promise.all(
+    deleted.map((mission) =>
+      removeMissionReportFiles({ missionId: mission.id, domain: mission.domain }),
+    ),
+  );
+
+  return NextResponse.json({ deleted: deleted.length });
 }
