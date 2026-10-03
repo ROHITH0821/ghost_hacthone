@@ -39,13 +39,13 @@ export function ConfidenceBadge({ evidence }: { evidence: ResolvedEvidence }) {
     <span
       className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
         isVerified || isHigh
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+          ? "border-resolved/30 bg-[#E4F4EC] text-resolved-text"
           : "border-violet/30 bg-violet/10 text-violet-300"
       }`}
       title={`${copy.marketIntelligence.evidenceConfidence}: ${pct}%`}
     >
       {isVerified ? (
-        <CheckCircle2 className="h-2.5 w-2.5 text-emerald-400" />
+        <CheckCircle2 className="h-2.5 w-2.5 text-resolved-text" />
       ) : (
         <CircleDot className="h-2.5 w-2.5 opacity-70" />
       )}

@@ -7,12 +7,12 @@ import { ChevronDown, ExternalLink, ArrowRight, ShieldAlert, Sparkles, CheckCirc
 
 const PRIORITY_STYLES: Record<MarketAction["priority"], { badge: string; border: string }> = {
   critical: {
-    badge: "bg-red-500/15 text-red-300 border-red-500/30",
-    border: "border-red-500/30 hover:border-red-500/50",
+    badge: "bg-ember-soft text-ember-text border-ember/25",
+    border: "border-ember/25 hover:border-ember/50",
   },
   high: {
-    badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-    border: "border-amber-500/30 hover:border-amber-500/50",
+    badge: "bg-[#FEF3E2] text-sev-medium-text border-sev-medium/35",
+    border: "border-sev-medium/35 hover:border-sev-medium/60",
   },
   medium: {
     badge: "bg-violet/15 text-violet-300 border-violet/30",
@@ -79,7 +79,7 @@ export function MarketActionCard({ action, index, onFixLink }: MarketActionCardP
           </span>
 
           <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-midnight/80 px-2.5 py-0.5 text-[10px] font-medium text-muted-light">
-            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+            <CheckCircle2 className="h-3 w-3 text-resolved-text" />
             <span>Verified · {confidencePct}%</span>
           </span>
 
@@ -118,7 +118,7 @@ export function MarketActionCard({ action, index, onFixLink }: MarketActionCardP
               <dt className="label-caps text-[10px] tracking-wider text-muted font-mono uppercase">
                 {copy.marketIntelligence.gapImpact}
               </dt>
-              <dd className="mt-1 leading-relaxed text-amber-200/90 font-medium">{action.impact}</dd>
+              <dd className="mt-1 leading-relaxed text-sev-medium-text font-medium">{action.impact}</dd>
             </div>
 
             <div>

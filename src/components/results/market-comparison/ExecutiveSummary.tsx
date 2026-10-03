@@ -50,12 +50,12 @@ export function ExecutiveSummary({
       </p>
 
       {warnings.length > 0 && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200/90 space-y-2">
-          <div className="flex items-center gap-2 font-semibold text-amber-300">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400" />
+        <div className="rounded-xl border border-sev-medium/35 bg-[#FEF3E2] p-4 text-xs text-sev-medium-text space-y-2">
+          <div className="flex items-center gap-2 font-semibold text-sev-medium-text">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-sev-medium-text" />
             <span>{copy.marketIntelligence.coverageTitle} Limitations</span>
           </div>
-          <ul className="grid gap-1.5 pl-6 list-disc text-amber-200/80">
+          <ul className="grid gap-1.5 pl-6 list-disc text-sev-medium-text">
             {warnings.slice(0, 6).map((w) => (
               <li key={w}>{w}</li>
             ))}
@@ -65,7 +65,7 @@ export function ExecutiveSummary({
 
       {needsRegen && !onRegenerate && (
         <p className="text-xs text-muted flex items-center gap-1.5 pt-1">
-          <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+          <Sparkles className="h-3.5 w-3.5 text-sev-medium-text shrink-0" />
           {copy.marketIntelligence.needsRegenSideBySide}
         </p>
       )}

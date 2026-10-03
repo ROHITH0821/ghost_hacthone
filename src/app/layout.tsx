@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { PrivacyAwareAnalytics } from "@/components/layout/PrivacyAwareAnalytics";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { SiteBackground } from "@/components/layout/SiteBackground";
@@ -9,15 +9,23 @@ import { copy } from "@/lib/copy";
 import { PreferencesProvider } from "@/components/providers/PreferencesProvider";
 import "./globals.css";
 
-const inter = Inter({
+const geist = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-geist-mono",
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
@@ -32,7 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#101716",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
 };
@@ -52,9 +60,9 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${spaceGrotesk.variable} relative min-h-screen bg-midnight antialiased`}
+        className={`${geist.variable} ${geistMono.variable} ${instrumentSerif.variable} relative min-h-screen bg-paper text-ink antialiased`}
       >
         <a href="#main-content" className="skip-link">Skip to content</a>
         <SiteBackground />

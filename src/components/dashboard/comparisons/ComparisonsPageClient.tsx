@@ -1,5 +1,6 @@
 "use client";
 
+import { GhostMark } from "@/components/ui/GhostMark";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RescanComparison, RescanPair } from "@/lib/db/comparisons";
@@ -323,8 +324,8 @@ export function ComparisonsPageClient() {
         </div>
       )}
       {regenMessage && (
-        <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-4 text-sm font-medium text-emerald-300 flex items-center gap-3 shadow-lg">
-          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
+        <div className="rounded-2xl border border-resolved/30 bg-[#E4F4EC] px-5 py-4 text-sm font-medium text-resolved-text flex items-center gap-3 shadow-lg">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-resolved-text" />
           <span>{regenMessage}</span>
         </div>
       )}
@@ -397,12 +398,12 @@ export function ComparisonsPageClient() {
           {marketLoading ? (
             /* Market Loading Skeleton */
             <div className="space-y-6" aria-busy="true" aria-label={copy.dashboardComparisons.marketLoading}>
-              <div className="h-16 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-              <div className="h-48 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-              <div className="h-64 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
+              <div className="h-16 ghost-skeleton !rounded-[14px] border border-line" />
+              <div className="h-48 ghost-skeleton !rounded-[14px] border border-line" />
+              <div className="h-64 ghost-skeleton !rounded-[14px] border border-line" />
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="h-40 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-                <div className="h-40 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
+                <div className="h-40 ghost-skeleton !rounded-[14px] border border-line" />
+                <div className="h-40 ghost-skeleton !rounded-[14px] border border-line" />
               </div>
             </div>
           ) : marketIntel ? (
@@ -552,11 +553,11 @@ export function ComparisonsPageClient() {
           </div>
 
           {!hasRescanComparison && (
-            <div className="rounded-2xl border border-border/70 bg-midnight/50 p-8 text-center backdrop-blur-md shadow-lg space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border/60 bg-surface/50 text-muted-light">
-                <TrendingUp className="h-6 w-6" />
+            <div className="rounded-[14px] border border-dashed border-[#D6D7D1] bg-mist/60 p-10 text-center space-y-3">
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-full border border-line bg-paper">
+                <GhostMark className="h-6 w-6" />
               </div>
-              <h4 className="font-heading text-lg font-bold text-ghost-white">
+              <h4 className="font-heading text-lg font-medium tracking-[-0.02em] text-ink">
                 {copy.dashboardComparisons.emptyTitle}
               </h4>
               <p className="max-w-md mx-auto text-xs text-muted-light leading-relaxed">
@@ -576,12 +577,12 @@ export function ComparisonsPageClient() {
                     aria-busy="true"
                     aria-label={copy.dashboardComparisons.loadingComparison}
                   >
-                    <div className="h-48 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-                    <div className="h-40 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
+                    <div className="h-48 ghost-skeleton !rounded-[14px] border border-line" />
+                    <div className="h-40 ghost-skeleton !rounded-[14px] border border-line" />
                     <div className="grid gap-4 sm:grid-cols-3">
-                      <div className="h-32 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-                      <div className="h-32 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
-                      <div className="h-32 animate-pulse rounded-2xl border border-border/40 bg-midnight/40" />
+                      <div className="h-32 ghost-skeleton !rounded-[14px] border border-line" />
+                      <div className="h-32 ghost-skeleton !rounded-[14px] border border-line" />
+                      <div className="h-32 ghost-skeleton !rounded-[14px] border border-line" />
                     </div>
                   </div>
                 ) : (

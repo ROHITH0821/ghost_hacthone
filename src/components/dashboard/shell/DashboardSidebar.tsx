@@ -108,13 +108,13 @@ export function DashboardSidebar({
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-border/60 bg-navy md:flex",
+        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-line bg-mist/70 md:flex",
         collapsed ? "w-[76px]" : "w-[228px]"
       )}
     >
       <div
         className={cn(
-          "flex h-16 items-center border-b border-border px-4",
+          "flex h-16 items-center border-b border-line px-4",
           collapsed ? "justify-center" : "justify-between"
         )}
       >
@@ -126,7 +126,7 @@ export function DashboardSidebar({
         <button
           type="button"
           onClick={onToggle}
-          className="grid h-8 w-8 place-items-center rounded-lg border border-border/60 text-muted-light transition-colors hover:text-ghost-white"
+          className="grid h-8 w-8 place-items-center rounded-full border border-line bg-paper text-graphite transition-colors hover:border-[#C9CAC4] hover:text-ink"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (
@@ -137,7 +137,8 @@ export function DashboardSidebar({
         </button>
       </div>
 
-      <nav aria-label="Workspace navigation" className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+      <nav aria-label="Workspace navigation" className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-3">
+        {!collapsed && <p className="mono-label px-3 pb-2 pt-1 text-[10px] text-ash-text">Workspace</p>}
         {NAV_ITEMS.filter(
           (item) => !("agencyOnly" in item && item.agencyOnly) || isAgencyUser
         ).map((item) => {
@@ -166,10 +167,10 @@ export function DashboardSidebar({
         })}
       </nav>
 
-      <div className="border-t border-border p-3">
+      <div className="border-t border-line p-3">
         {!collapsed && (
-          <div className="mb-3 rounded-xl border border-border/60 bg-midnight/50 px-3 py-2.5">
-            <p className="text-[10px] uppercase tracking-wider text-muted">Current plan</p>
+          <div className="mb-3 rounded-[12px] border border-line bg-paper px-3 py-2.5">
+            <p className="mono-label flex items-center gap-1.5 text-[10px] text-ash-text"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-resolved" />Current plan</p>
             <p className="mt-1 truncate text-sm font-medium text-ghost-white">
               {planSummary.planBadge}
             </p>
@@ -178,17 +179,17 @@ export function DashboardSidebar({
         <Link
           href="/dashboard/settings"
           className={cn(
-            "flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-surface/50",
+            "flex items-center gap-3 rounded-[12px] px-3 py-2.5 transition-colors hover:bg-paper",
             collapsed && "justify-center"
           )}
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-violet/30 bg-violet/10 text-sm font-semibold uppercase text-violet">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ink text-sm font-medium uppercase text-paper">
             {user.email.charAt(0)}
           </span>
           {!collapsed && (
             <span className="min-w-0">
-              <p className="truncate text-sm text-ghost-white/90">{user.email}</p>
-              <p className="text-xs text-muted">{nav.settings}</p>
+              <p className="truncate text-sm text-ink">{user.email}</p>
+              <p className="text-xs text-ash-text">{nav.settings}</p>
             </span>
           )}
         </Link>
@@ -221,11 +222,11 @@ export function DashboardMobileMoreSheet({
     <Dialog open={open} onClose={onClose} labelledBy="more-nav-title" className="md:hidden">
       <div className="max-h-[80dvh] overflow-y-auto p-5" onClick={event=>{if((event.target as HTMLElement).closest('a'))onClose();}}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 id="more-nav-title" className="font-heading text-lg font-semibold text-ghost-white">Workspace</h2>
+          <h2 id="more-nav-title" className="font-heading text-lg font-medium tracking-[-0.02em] text-ink">Workspace</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-muted-light hover:text-ghost-white"
+            className="grid h-11 w-11 place-items-center rounded-full border border-line text-graphite hover:text-ink"
             aria-label="Close"
           >
             <ChevronLeft className="h-5 w-5 rotate-[-90deg]" />

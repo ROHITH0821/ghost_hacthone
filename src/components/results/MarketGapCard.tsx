@@ -4,8 +4,8 @@ import type { MarketGap } from "@/lib/competitor-intelligence/types";
 import { copy } from "@/lib/copy";
 
 const PRIORITY_STYLES: Record<MarketGap["priority"], string> = {
-  critical: "bg-red-500/20 text-red-300 border-red-500/30",
-  high: "bg-amber-500/20 text-amber-200 border-amber-500/30",
+  critical: "bg-ember-soft text-ember-text border-ember/25",
+  high: "bg-[#FEF3E2] text-sev-medium-text border-sev-medium/35",
   medium: "bg-violet/20 text-violet border-violet/30",
   low: "bg-muted/20 text-muted-light border-border/60",
 };

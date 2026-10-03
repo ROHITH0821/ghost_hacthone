@@ -84,9 +84,9 @@ export function ComparisonAppendix({
                     deltaVal == null
                       ? "text-muted"
                       : deltaVal > 0
-                        ? "text-emerald-400 font-bold"
+                        ? "text-resolved-text font-bold"
                         : deltaVal < 0
-                          ? "text-red-400 font-bold"
+                          ? "text-ember-text font-bold"
                           : "text-muted-light font-bold";
 
                   return (

@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LayoutDashboard, LogOut, UserRound } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { TextLink } from "@/components/ui/BRAVE";
 import { copy } from "@/lib/copy";
 
 export function UserMenu() {
@@ -34,14 +33,18 @@ export function UserMenu() {
   }, [open]);
 
   if (loading) {
-    return <div className="h-5 w-20 animate-pulse rounded bg-border" />;
+    return <div className="ghost-skeleton h-10 w-[88px] !rounded-full" />;
   }
 
   if (!user) {
     return (
-      <TextLink onClick={() => router.push("/login")} className="!text-sm md:!text-base">
+      <button
+        type="button"
+        onClick={() => router.push("/login")}
+        className="inline-flex min-h-10 items-center rounded-full bg-ink px-5 text-[14px] font-medium tracking-[-0.01em] text-paper transition-[background-color,transform] duration-200 hover:bg-[#24252A] active:scale-[0.98] max-sm:min-h-11"
+      >
         {copy.nav.signIn}
-      </TextLink>
+      </button>
     );
   }
 
@@ -54,30 +57,30 @@ export function UserMenu() {
   return (
     <>
       {/* Desktop / tablet: inline menu */}
-      <div className="hidden items-center gap-4 sm:flex">
+      <div className="hidden items-center gap-1 sm:flex">
         <Link
           href="/dashboard/overview"
-          className="max-w-[220px] truncate text-sm text-muted-light transition-colors hover:text-ghost-white"
+          className="hidden max-w-[180px] truncate px-2 text-[13px] text-ash-text transition-colors hover:text-ink xl:block"
           title={user.email}
         >
           {user.email}
         </Link>
         <Link
           href="/dashboard/overview"
-          className="rounded-xl border border-border bg-surface/30 px-3 py-1.5 text-sm text-ghost-white/70 transition-colors hover:text-ghost-white"
+          className="inline-flex min-h-10 items-center rounded-full bg-ink px-4 text-[14px] font-medium text-paper transition-colors hover:bg-[#24252A]"
         >
           {copy.nav.dashboard}
         </Link>
         <Link
           href="/dashboard/settings"
-          className="text-sm text-ghost-white/60 transition-colors hover:text-ghost-white"
+          className="inline-flex min-h-10 items-center rounded-full px-3 text-[14px] text-graphite transition-colors hover:bg-fog/70 hover:text-ink"
         >
           {copy.nav.profile}
         </Link>
         <button
           type="button"
           onClick={handleSignOut}
-          className="text-sm text-ghost-white/60 transition-colors hover:text-ghost-white"
+          className="inline-flex min-h-10 items-center rounded-full px-3 text-[14px] text-graphite transition-colors hover:bg-fog/70 hover:text-ink"
         >
           {copy.nav.signOut}
         </button>
@@ -91,7 +94,7 @@ export function UserMenu() {
           aria-expanded={open}
           aria-haspopup="menu"
           onClick={() => setOpen((v) => !v)}
-          className="grid h-9 w-9 place-items-center rounded-full border border-border bg-surface/40 text-sm font-semibold uppercase text-ghost-white/90 transition-colors hover:border-violet/50"
+          className="grid h-11 w-11 place-items-center rounded-full bg-ink text-sm font-medium uppercase text-paper transition-colors hover:bg-[#24252A]"
         >
           {user.email.charAt(0) || <UserRound className="h-4 w-4" />}
         </button>
@@ -99,16 +102,16 @@ export function UserMenu() {
         {open && (
           <div
             role="menu"
-            className="absolute right-0 top-11 z-50 w-52 overflow-hidden rounded-xl border border-border bg-midnight/95 shadow-2xl backdrop-blur-xl"
+            className="absolute right-0 top-14 z-50 w-56 overflow-hidden rounded-[14px] border border-line bg-paper/95 shadow-[var(--shadow-float)] backdrop-blur-xl"
           >
-            <p className="truncate border-b border-border px-4 py-3 text-xs text-muted">
+            <p className="mono-label truncate border-b border-line px-4 py-3 text-ash-text">
               {user.email}
             </p>
             <Link
               href="/dashboard/overview"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-3 text-sm text-ghost-white/80 transition-colors hover:bg-surface/40 hover:text-ghost-white"
+              className="flex min-h-11 items-center gap-2.5 px-4 py-3 text-sm text-graphite transition-colors hover:bg-mist hover:text-ink"
             >
               <LayoutDashboard className="h-4 w-4" />
               {copy.nav.dashboard}
@@ -117,7 +120,7 @@ export function UserMenu() {
               href="/dashboard/settings"
               role="menuitem"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 px-4 py-3 text-sm text-ghost-white/80 transition-colors hover:bg-surface/40 hover:text-ghost-white"
+              className="flex min-h-11 items-center gap-2.5 px-4 py-3 text-sm text-graphite transition-colors hover:bg-mist hover:text-ink"
             >
               <UserRound className="h-4 w-4" />
               {copy.nav.profile}
@@ -126,7 +129,7 @@ export function UserMenu() {
               type="button"
               role="menuitem"
               onClick={handleSignOut}
-              className="flex w-full items-center gap-2.5 px-4 py-3 text-left text-sm text-ghost-white/80 transition-colors hover:bg-surface/40 hover:text-ghost-white"
+              className="flex min-h-11 w-full items-center gap-2.5 px-4 py-3 text-left text-sm text-graphite transition-colors hover:bg-mist hover:text-ink"
             >
               <LogOut className="h-4 w-4" />
               {copy.nav.signOut}

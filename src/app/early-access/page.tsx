@@ -61,27 +61,28 @@ export default function EarlyAccessPage() {
       <div className="mb-10">
         <GhostLogo size="md" />
       </div>
+      <p className="mono-label mb-6 flex items-center gap-2.5 rounded-full border border-line bg-paper px-3.5 py-1.5 text-graphite"><span aria-hidden className="ember-dot !h-1.5 !w-1.5" />Early access</p>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: EASE_SMOOTH }}
-        className="w-full max-w-md text-center"
+        className="w-full max-w-md rounded-[18px] border border-line bg-paper p-8 text-center shadow-[var(--shadow-float)] sm:p-10"
       >
-        <h1 className="font-heading text-2xl font-semibold text-ghost-white md:text-3xl">
+        <h1 className="font-heading text-[28px] font-medium tracking-[-0.035em] text-ink md:text-[32px]">
           {copy.earlyAccess.title}
         </h1>
-        <p className="mt-4 text-sm leading-relaxed text-muted-light md:text-base">
+        <p className="mt-4 text-[15px] leading-relaxed text-graphite">
           {message || copy.earlyAccess.body}
         </p>
         {user?.email && (
-          <p className="mt-3 text-sm text-muted">{user.email}</p>
+          <p className="mono-label mt-4 text-ash-text">{user.email}</p>
         )}
         <div className="mt-8 flex flex-col items-center gap-4">
           <button
             type="button"
             onClick={() => void syncAndContinue()}
             disabled={checking || loading}
-            className="inline-flex items-center justify-center rounded-xl border border-violet/50 bg-violet/20 px-5 py-2.5 text-sm font-medium text-violet-glow transition-colors hover:border-violet/70 hover:bg-violet/30 disabled:opacity-50"
+            className="inline-flex min-h-12 items-center justify-center rounded-full bg-ink px-7 text-sm font-medium text-paper transition-[background-color,transform] duration-200 hover:bg-[#24252A] active:scale-[0.98] disabled:opacity-50"
           >
             {checking ? copy.earlyAccess.checking : copy.earlyAccess.checkAgain}
           </button>

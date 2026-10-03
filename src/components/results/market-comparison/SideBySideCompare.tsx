@@ -101,9 +101,9 @@ function ThemeSideCell({
 function standingBadgeClass(standing: ThemeStanding): string {
   switch (standing) {
     case "behind":
-      return "border-red-500/30 bg-red-500/10 text-red-300 font-semibold";
+      return "border-ember/25 bg-ember-soft text-ember-text font-semibold";
     case "ahead":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 font-semibold";
+      return "border-resolved/30 bg-[#E4F4EC] text-resolved-text font-semibold";
     case "similar":
       return "border-border/60 bg-midnight/60 text-muted-light font-medium";
     default:
@@ -272,7 +272,7 @@ export function SideBySideCompare({
       </div>
 
       {needsRegen ? (
-        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-200/90">
+        <p className="rounded-xl border border-sev-medium/35 bg-[#FEF3E2] p-4 text-sm text-sev-medium-text">
           {copy.marketIntelligence.needsRegenSideBySide}
         </p>
       ) : competitors.length === 0 ? (
@@ -291,13 +291,13 @@ export function SideBySideCompare({
               <p className="text-[10px] font-mono uppercase tracking-wider text-muted">Themes Compared</p>
               <p className="mt-1 font-heading text-lg font-bold text-ghost-white">{summary.themeCount}</p>
             </div>
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-center">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-red-400">Behind</p>
-              <p className="mt-1 font-heading text-lg font-bold text-red-300">{summary.behind}</p>
+            <div className="rounded-xl border border-ember/25 bg-ember-soft p-3 text-center">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-ember-text">Behind</p>
+              <p className="mt-1 font-heading text-lg font-bold text-ember-text">{summary.behind}</p>
             </div>
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
-              <p className="text-[10px] font-mono uppercase tracking-wider text-emerald-400">Ahead</p>
-              <p className="mt-1 font-heading text-lg font-bold text-emerald-300">{summary.ahead}</p>
+            <div className="rounded-xl border border-resolved/30 bg-[#E4F4EC] p-3 text-center">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-resolved-text">Ahead</p>
+              <p className="mt-1 font-heading text-lg font-bold text-resolved-text">{summary.ahead}</p>
             </div>
             <div className="rounded-xl border border-border/60 bg-midnight/40 p-3 text-center">
               <p className="text-[10px] font-mono uppercase tracking-wider text-muted-light">Similar</p>

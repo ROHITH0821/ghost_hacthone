@@ -1,5 +1,6 @@
 "use client";
 
+import { GhostMark } from "@/components/ui/GhostMark";
 import { FeedbackState } from "@/components/ui/FeedbackState";
 
 import { useEffect, useState } from "react";
@@ -150,8 +151,9 @@ export function ClientsPageClient() {
       )}
 
       {clients.length === 0 ? (
-        <div className="rounded-2xl border border-border/60 bg-midnight/40 p-8 text-center">
-          <p className="font-medium text-ghost-white">{copy.dashboardClients.emptyTitle}</p>
+        <div className="rounded-[14px] border border-dashed border-[#D6D7D1] bg-mist/60 p-10 text-center">
+          <span aria-hidden className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-line bg-paper"><GhostMark className="h-6 w-6" /></span>
+          <p className="font-medium text-ink">{copy.dashboardClients.emptyTitle}</p>
           <p className="mt-2 text-sm text-muted">{copy.dashboardClients.emptyBody}</p>
         </div>
       ) : (

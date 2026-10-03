@@ -13,28 +13,29 @@ export const COLORS = {
 export const MISSION_STAGES: MissionStageInfo[] = getMissionStages();
 
 export const SEVERITY_CONFIG = {
+  // Ghost White + Ember: text colours are the AA-safe variants on white.
   critical: {
     label: copy.severity.critical,
-    color: "#F69F98",
-    bg: "rgba(246, 159, 152, 0.1)",
-    border: "rgba(246, 159, 152, 0.3)",
+    color: "#C2340E",
+    bg: "#FFE9E1",
+    border: "rgba(255, 74, 28, 0.35)",
   },
   high: {
     label: copy.severity.high,
-    color: "#F2C879",
-    bg: "rgba(242, 200, 121, 0.1)",
-    border: "rgba(242, 200, 121, 0.3)",
+    color: "#C2340E",
+    bg: "#FFE9E1",
+    border: "rgba(255, 74, 28, 0.25)",
   },
   medium: {
     label: copy.severity.medium,
-    color: "#9CBDF0",
-    bg: "rgba(156, 189, 240, 0.1)",
-    border: "rgba(156, 189, 240, 0.3)",
+    color: "#A14A08",
+    bg: "#FEF3E2",
+    border: "rgba(245, 158, 11, 0.3)",
   },
   low: {
     label: copy.severity.low,
-    color: "#A0B1AB",
-    bg: "rgba(160, 177, 171, 0.1)",
-    border: "rgba(160, 177, 171, 0.3)",
+    color: "#65686F",
+    bg: "#F6F6F3",
+    border: "#E6E6E1",
   },
 } as const;

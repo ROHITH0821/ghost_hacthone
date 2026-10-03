@@ -25,12 +25,12 @@ export function DashboardNavItem({
   const queryClient = useQueryClient();
 
   const className = cn(
-    "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+    "group relative flex min-h-10 items-center gap-3 rounded-[10px] px-3 py-2 text-sm transition-colors duration-200",
     active
-      ? "bg-violet/10 text-violet"
+      ? "bg-paper text-ink shadow-[0_1px_2px_rgba(10,10,12,0.05)] ring-1 ring-line"
       : disabled
-        ? "cursor-not-allowed text-muted/60"
-        : "text-muted-light hover:bg-surface/50 hover:text-ghost-white"
+        ? "cursor-not-allowed text-ash"
+        : "text-graphite hover:bg-paper/70 hover:text-ink"
   );
 
   const content = (
@@ -38,16 +38,17 @@ export function DashboardNavItem({
       <span
         className={cn(
           "grid h-6 w-6 shrink-0 place-items-center",
-          active && "text-violet"
+          active ? "text-ink" : "text-ash group-hover:text-ink"
         )}
       >
         {icon}
       </span>
       {!collapsed && (
         <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
-          <span className="truncate font-medium">{label}</span>
+          <span className={cn("truncate", active ? "font-medium" : "")}>{label}</span>
+          {active && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-ember" />}
           {soon && (
-            <span className="shrink-0 rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted">
+            <span className="mono-label shrink-0 rounded-full border border-line px-2 py-0.5 text-[10px] text-ash-text">
               Soon
             </span>
           )}

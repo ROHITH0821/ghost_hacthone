@@ -33,23 +33,24 @@ export function DashboardTopBar({
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-midnight/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-line bg-paper/80 backdrop-blur-xl backdrop-saturate-150">
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-6 lg:px-8">
         <div className="min-w-0">
-          <h1 className="truncate font-heading text-base font-medium text-ghost-white md:text-lg">
+          <p aria-hidden className="mono-label hidden text-[10px] text-ash-text md:block">Workspace</p>
+          <h1 className="truncate font-heading text-base font-medium tracking-[-0.02em] text-ink md:text-lg">
             {title}
           </h1>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <form onSubmit={handleSearch} className="relative hidden lg:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ash" />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={copy.dashboardShell.searchPlaceholder}
-              className="h-10 w-56 rounded-xl border border-border/60 bg-surface/40 pl-10 pr-3 text-sm text-ghost-white placeholder:text-muted outline-none transition-colors focus:border-violet/50 focus:ring-1 focus:ring-violet/30"
+              className="h-10 w-60 rounded-full border border-transparent bg-fog pl-10 pr-3 text-sm text-ink placeholder:text-ash-text outline-none transition-[background-color,border-color,box-shadow] focus:border-ember/40 focus:bg-paper focus:shadow-[var(--ring-ember)] focus-visible:!outline-none"
               aria-label={copy.dashboardShell.searchPlaceholder}
             />
           </form>

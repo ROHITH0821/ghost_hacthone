@@ -130,7 +130,7 @@ export function Ga4PropertyPicker({
         )}
 
         {selectedMismatched && (
-          <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-sm text-amber-400">
+          <div className="mb-4 flex items-start gap-2 rounded-xl border border-sev-medium/35 bg-[#FEF3E2] p-3 text-sm text-sev-medium-text">
             <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
             <p>
               This property tracks a different domain than your site ({siteDomain}).
@@ -223,21 +223,21 @@ export function Ga4PropertyPicker({
                               onClick={() => setSelected({ property, stream })}
                               className={`flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors opacity-70 ${
                                 isSelected
-                                  ? "border-amber-400/50 bg-amber-400/10 opacity-100"
+                                  ? "border-sev-medium/35 bg-[#FEF3E2] opacity-100"
                                   : "border-border/40 bg-midnight/30 hover:border-border/60 hover:opacity-90"
                               }`}
                             >
                               <div
                                 className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border ${
-                                  isSelected ? "border-amber-400 bg-amber-400/20" : "border-border"
+                                  isSelected ? "border-sev-medium/35 bg-[#FEF3E2]" : "border-border"
                                 }`}
                               >
-                                {isSelected && <Check className="h-3 w-3 text-amber-400" />}
+                                {isSelected && <Check className="h-3 w-3 text-sev-medium-text" />}
                               </div>
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
                                   <p className="text-sm font-medium text-ghost-white">{property.name}</p>
-                                  <span className="flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                                  <span className="flex items-center gap-1 rounded-full border border-sev-medium/35 bg-[#FEF3E2] px-2 py-0.5 text-[10px] font-medium text-sev-medium-text">
                                     <AlertTriangle className="h-2.5 w-2.5" />
                                     Different domain
                                   </span>
@@ -258,7 +258,7 @@ export function Ga4PropertyPicker({
 
             {/* When there are NO matching streams at all, show all as normal */}
             {!hasMatching && siteDomain && (
-              <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-400">
+              <div className="mt-3 flex items-start gap-2 rounded-xl border border-sev-medium/35 bg-[#FEF3E2] p-3 text-xs text-sev-medium-text">
                 <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <p>
                   None of these properties match <strong>{siteDomain}</strong>.

@@ -1,5 +1,6 @@
 "use client";
 
+import { GhostMark } from "@/components/ui/GhostMark";
 import { useState } from "react";
 import Link from "next/link";
 import type { ClientDetail } from "@/lib/db/clients";
@@ -91,7 +92,7 @@ export function ClientDetailPageClient({
       {tab === "audits" && (
         <ul className="space-y-2">
           {audits.length === 0 ? (
-            <p className="text-sm text-muted">No audits yet for this client.</p>
+            <p className="rounded-[14px] border border-dashed border-[#D6D7D1] bg-mist/60 p-10 text-center text-sm text-ash-text"><span aria-hidden className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-line bg-paper"><GhostMark className="h-6 w-6" /></span> No audits yet for this client.</p>
           ) : (
             audits.map((a) => (
               <li

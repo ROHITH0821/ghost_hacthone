@@ -8,7 +8,7 @@ import { copy } from "@/lib/copy";
 
 const STATUS_STYLES: Record<CriterionScore["status"], string> = {
   present: "bg-neon-green/15 text-neon-green border-neon-green/30",
-  partial: "bg-amber-500/15 text-amber-200 border-amber-500/30",
+  partial: "bg-[#FEF3E2] text-sev-medium-text border-sev-medium/35",
   absent: "bg-muted/15 text-muted-light border-border/60",
 };
 

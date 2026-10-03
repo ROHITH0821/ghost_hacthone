@@ -11,9 +11,9 @@ function qualityLabel(q: CompetitorProfileCard["crawlQuality"]): string {
 }
 
 function qualityClass(q: CompetitorProfileCard["crawlQuality"]): string {
-  if (q === "good") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-400";
-  if (q === "weak") return "border-red-500/30 bg-red-500/10 text-red-400";
-  return "border-amber-500/30 bg-amber-500/10 text-amber-300";
+  if (q === "good") return "border-resolved/30 bg-[#E4F4EC] text-resolved-text";
+  if (q === "weak") return "border-ember/25 bg-ember-soft text-ember-text";
+  return "border-sev-medium/35 bg-[#FEF3E2] text-sev-medium-text";
 }
 
 export function CompetitorProfiles({
@@ -78,8 +78,8 @@ export function CompetitorProfiles({
               )}
 
               <div className="mt-4 grid gap-4 text-xs sm:grid-cols-2">
-                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
-                  <div className="flex items-center gap-1.5 font-semibold text-emerald-400 mb-2 font-mono uppercase tracking-wider text-[10px]">
+                <div className="rounded-xl border border-resolved/30 bg-[#E4F4EC] p-3">
+                  <div className="flex items-center gap-1.5 font-semibold text-resolved-text mb-2 font-mono uppercase tracking-wider text-[10px]">
                     <Check className="h-3.5 w-3.5" />
                     <span>{copy.marketIntelligence.topStrengths}</span>
                   </div>
@@ -89,15 +89,15 @@ export function CompetitorProfiles({
                       : [{ text: copy.marketIntelligence.noneListed, confidence: 0 }]
                     ).map((s) => (
                       <li key={s.text} className="flex items-start gap-1.5">
-                        <span className="text-emerald-400 shrink-0">✓</span>
+                        <span className="text-resolved-text shrink-0">✓</span>
                         <span className="leading-snug">{s.text}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3">
-                  <div className="flex items-center gap-1.5 font-semibold text-red-400 mb-2 font-mono uppercase tracking-wider text-[10px]">
+                <div className="rounded-xl border border-ember/25 bg-ember-soft p-3">
+                  <div className="flex items-center gap-1.5 font-semibold text-ember-text mb-2 font-mono uppercase tracking-wider text-[10px]">
                     <X className="h-3.5 w-3.5" />
                     <span>{copy.marketIntelligence.weaknesses}</span>
                   </div>
@@ -107,7 +107,7 @@ export function CompetitorProfiles({
                       : [{ text: copy.marketIntelligence.noneListed, confidence: 0 }]
                     ).map((w) => (
                       <li key={w.text} className="flex items-start gap-1.5">
-                        <span className="text-red-400 shrink-0">×</span>
+                        <span className="text-ember-text shrink-0">×</span>
                         <span className="leading-snug">{w.text}</span>
                       </li>
                     ))}

@@ -183,7 +183,7 @@ export function LeakCards({ leaks, teaserMode = false, analyticsEvidence }: Leak
                           {/* AI Interpretation */}
                           {findingEv.interpretation && (
                             <div className="flex items-start gap-2 text-muted">
-                              <span className="shrink-0 rounded bg-midnight/80 px-1.5 py-0.5 font-mono text-[9px] font-bold text-amber-400 uppercase">
+                              <span className="shrink-0 rounded bg-midnight/80 px-1.5 py-0.5 font-mono text-[9px] font-bold text-sev-medium-text uppercase">
                                 Interp
                               </span>
                               <p className="leading-relaxed">{findingEv.interpretation}</p>

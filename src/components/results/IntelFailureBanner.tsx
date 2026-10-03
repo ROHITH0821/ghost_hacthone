@@ -42,18 +42,18 @@ export function IntelFailureBanner({
   }
 
   return (
-    <div className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 shadow-lg">
+    <div className="rounded-2xl border border-sev-medium/35 bg-[#FEF3E2] px-5 py-4 shadow-lg">
       <div className="flex items-start gap-3">
-        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-sev-medium-text" />
         <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm font-semibold text-amber-100">
+          <p className="text-sm font-semibold text-sev-medium-text">
             {copy.marketIntelligence.intelFailureTitle}
           </p>
-          <p className="text-sm text-amber-100/90">
+          <p className="text-sm text-sev-medium-text">
             {copy.marketIntelligence.intelFailureBody}
           </p>
           {intelError && (
-            <p className="text-xs text-amber-200/70 font-mono break-all">{intelError}</p>
+            <p className="text-xs text-sev-medium-text font-mono break-all">{intelError}</p>
           )}
           <div className="flex flex-wrap items-center gap-3 pt-1">
             {hasCompetitorCrawlPacks ? (
@@ -61,7 +61,7 @@ export function IntelFailureBanner({
                 type="button"
                 disabled={isRegenerating}
                 onClick={() => void handleRegenerate()}
-                className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-50 transition-colors hover:bg-amber-500/30 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-xl border border-sev-medium/35 bg-[#FEF3E2] px-4 py-2 text-xs font-bold text-sev-medium-text transition-colors hover:bg-[#FDE7C4] disabled:opacity-50"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRegenerating ? "animate-spin" : ""}`} />
                 {copy.marketIntelligence.intelFailureRegenerateCta}
@@ -70,7 +70,7 @@ export function IntelFailureBanner({
               <button
                 type="button"
                 onClick={onNewAudit}
-                className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-50 transition-colors hover:bg-amber-500/30"
+                className="inline-flex items-center gap-2 rounded-xl border border-sev-medium/35 bg-[#FEF3E2] px-4 py-2 text-xs font-bold text-sev-medium-text transition-colors hover:bg-[#FDE7C4]"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 {copy.marketIntelligence.intelFailureNewAuditCta}
@@ -78,7 +78,7 @@ export function IntelFailureBanner({
             ) : (
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-xl border border-amber-400/50 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-50 transition-colors hover:bg-amber-500/30"
+                className="inline-flex items-center gap-2 rounded-xl border border-sev-medium/35 bg-[#FEF3E2] px-4 py-2 text-xs font-bold text-sev-medium-text transition-colors hover:bg-[#FDE7C4]"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 {copy.marketIntelligence.intelFailureNewAuditCta}

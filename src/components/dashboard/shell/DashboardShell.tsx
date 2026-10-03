@@ -97,7 +97,7 @@ function DashboardShellInner({
       comparisonsNavVisible={comparisonsNavVisible}
       isAgencyUser={isAgencyUser}
     >
-      <div className="flex min-h-screen bg-midnight">
+      <div className="flex min-h-screen bg-paper">
         <DashboardSidebar
           collapsed={collapsed}
           onToggle={toggleSidebar}

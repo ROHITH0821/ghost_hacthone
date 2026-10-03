@@ -1,5 +1,6 @@
 "use client";
 
+import { GhostMark } from "@/components/ui/GhostMark";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { FeedbackState } from "@/components/ui/FeedbackState";
@@ -436,8 +437,9 @@ export function OverviewPageClient() {
           {copy.dashboardOverview.attentionTitle}
         </h3>
         {attentionItems.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-border/60 bg-midnight/40 p-6 text-center">
-            <p className="text-sm font-medium text-ghost-white/90">
+          <div className="mt-4 rounded-[14px] border border-dashed border-[#D6D7D1] bg-mist/60 p-10 text-center">
+            <span aria-hidden className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full border border-line bg-paper"><GhostMark className="h-6 w-6" /></span>
+            <p className="text-sm font-medium text-ink">
               {missions.length === 0
                 ? copy.dashboardOverview.emptyTitle
                 : copy.dashboardOverview.attentionClear}

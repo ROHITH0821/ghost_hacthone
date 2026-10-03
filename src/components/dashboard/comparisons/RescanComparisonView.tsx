@@ -18,10 +18,10 @@ function LeakList({
 }) {
   const toneCls =
     tone === "green"
-      ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300"
+      ? "border-resolved/30 bg-[#E4F4EC] text-resolved-text"
       : tone === "danger"
-        ? "border-red-500/30 bg-red-500/5 text-red-300"
-        : "border-amber-500/30 bg-amber-500/5 text-amber-300";
+        ? "border-ember/25 bg-ember-soft text-ember-text"
+        : "border-sev-medium/35 bg-[#FEF3E2] text-sev-medium-text";
 
   return (
     <section className={`rounded-2xl border p-5 backdrop-blur-md transition-all shadow-md ${toneCls}`}>
@@ -76,10 +76,10 @@ export function RescanComparisonView({
     <div className="space-y-8">
       {/* Low Confidence Warning */}
       {(comparison.baselineLowConfidence || comparison.rescanLowConfidence) && (
-        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs text-amber-200/90 flex items-center gap-3 shadow-md">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-400" />
+        <div className="rounded-xl border border-sev-medium/35 bg-[#FEF3E2] p-4 text-xs text-sev-medium-text flex items-center gap-3 shadow-md">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-sev-medium-text" />
           <div>
-            <p className="font-bold text-amber-300 uppercase tracking-wider font-mono text-[10px]">
+            <p className="font-bold text-sev-medium-text uppercase tracking-wider font-mono text-[10px]">
               LIMITED CRAWL CONFIDENCE
             </p>
             <p className="mt-0.5 leading-relaxed">{copy.dashboardComparisons.lowConfidence}</p>
@@ -134,18 +134,18 @@ export function RescanComparisonView({
           <div
             className={`inline-flex items-center gap-2.5 rounded-full border px-5 py-2 text-sm font-semibold shadow-lg backdrop-blur-md ${
               deltaPositive
-                ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
+                ? "border-resolved/30 bg-[#E4F4EC] text-resolved-text"
                 : deltaZero
                   ? "border-border/60 bg-midnight/80 text-ghost-white"
-                  : "border-red-500/40 bg-red-500/15 text-red-300"
+                  : "border-ember/25 bg-ember-soft text-ember-text"
             }`}
           >
             {deltaPositive ? (
-              <TrendingUp className="h-4 w-4 text-emerald-400" />
+              <TrendingUp className="h-4 w-4 text-resolved-text" />
             ) : deltaZero ? (
               <Sparkles className="h-4 w-4 text-muted-light" />
             ) : (
-              <TrendingDown className="h-4 w-4 text-red-400" />
+              <TrendingDown className="h-4 w-4 text-ember-text" />
             )}
             <span className="font-mono text-base font-bold">
               {deltaPositive ? `+${delta}` : delta}
@@ -185,10 +185,10 @@ export function RescanComparisonView({
                       <span
                         className={`font-bold ${
                           dimPositive
-                            ? "text-emerald-400"
+                            ? "text-resolved-text"
                             : dimZero
                               ? "text-muted"
-                              : "text-red-400"
+                              : "text-ember-text"
                         }`}
                       >
                         {dimPositive ? `+${dimDelta}` : dimDelta}
@@ -208,8 +208,8 @@ export function RescanComparisonView({
                       <div
                         className={`absolute top-0 bottom-0 left-0 rounded-full transition-all ${
                           dimPositive
-                            ? "bg-gradient-to-r from-violet to-emerald-400"
-                            : "bg-gradient-to-r from-violet to-red-400"
+                            ? "bg-resolved"
+                            : "bg-ember"
                         }`}
                         style={{ width: `${Math.min(100, Math.max(0, dim.rescan))}%` }}
                       />
@@ -233,40 +233,40 @@ export function RescanComparisonView({
             title={copy.dashboardComparisons.resolved}
             items={comparison.resolved}
             tone="green"
-            badgeIcon={<CheckCircle2 className="h-4 w-4 text-emerald-400" />}
+            badgeIcon={<CheckCircle2 className="h-4 w-4 text-resolved-text" />}
           />
           <LeakList
             title={copy.dashboardComparisons.persistent}
             items={comparison.persistent}
             tone="amber"
-            badgeIcon={<AlertCircle className="h-4 w-4 text-amber-400" />}
+            badgeIcon={<AlertCircle className="h-4 w-4 text-sev-medium-text" />}
           />
           <LeakList
             title={copy.dashboardComparisons.newLeaks}
             items={comparison.newLeaks}
             tone="danger"
-            badgeIcon={<AlertTriangle className="h-4 w-4 text-red-400" />}
+            badgeIcon={<AlertTriangle className="h-4 w-4 text-ember-text" />}
           />
         </div>
       </section>
 
       {/* VERIFIED FIXES SUCCESS BLOCK */}
       {verifiedFixes.length > 0 && (
-        <section className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 backdrop-blur-md shadow-lg space-y-3">
-          <div className="flex items-center gap-2.5 text-emerald-300">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+        <section className="rounded-2xl border border-resolved/30 bg-[#E4F4EC] p-6 backdrop-blur-md shadow-lg space-y-3">
+          <div className="flex items-center gap-2.5 text-resolved-text">
+            <CheckCircle2 className="h-5 w-5 text-resolved-text" />
             <h4 className="font-heading text-base font-bold">
               {copy.dashboardComparisons.verifiedFixes}
             </h4>
           </div>
-          <p className="text-xs text-emerald-200/80">Ghost confirmed these changes in the re-scan:</p>
+          <p className="text-xs text-resolved-text">Ghost confirmed these changes in the re-scan:</p>
           <ul className="grid gap-2 pt-1">
             {verifiedFixes.map((f) => (
               <li
                 key={f.id}
-                className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-midnight/60 px-4 py-2.5 text-xs md:text-sm font-semibold text-ghost-white"
+                className="flex items-center gap-2 rounded-xl border border-resolved/30 bg-midnight/60 px-4 py-2.5 text-xs md:text-sm font-semibold text-ghost-white"
               >
-                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-resolved-text shrink-0" />
                 <span>{f.title}</span>
               </li>
             ))}

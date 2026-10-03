@@ -157,14 +157,14 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md surface-panel p-6 sm:p-8">
+    <div className="w-full max-w-[420px] rounded-[18px] border border-line bg-paper p-6 shadow-[var(--shadow-float)] sm:p-9">
       <div className="mb-10 flex items-center justify-between gap-4">
         <GhostLogo size="md" />
         <Link
           href="/"
-          className="inline-flex shrink-0 items-center gap-1.5 text-sm text-muted transition-colors hover:text-ghost-white"
+          className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm text-graphite transition-colors hover:text-ink"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-4 w-4 transition-transform duration-300 group-hover:-translate-x-0.5" />
           {copy.auth.backToHome}
         </Link>
       </div>
@@ -174,11 +174,11 @@ export function LoginForm() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: EASE_SMOOTH }}
       >
-        <h1 className="font-heading text-3xl font-bold text-ghost-white md:text-4xl">
+        <h1 className="font-heading text-[34px] font-medium leading-[1.05] tracking-[-0.04em] text-ink md:text-[40px]">
           {copy.auth.signInTitle}{" "}
-          <span className="text-gradient">{copy.auth.signInAccent}</span>
+          <span className="serif-accent">{copy.auth.signInAccent}</span>
         </h1>
-        <p className="mt-3 text-sm text-muted-light md:text-base">
+        <p className="mt-3 text-[15px] leading-relaxed text-graphite">
           {pendingUrl && step === "email"
             ? copy.auth.loginToAnalyze(pendingUrl)
             : step === "email"
@@ -202,7 +202,7 @@ export function LoginForm() {
               {copy.auth.emailLabel}
             </label>
             <div className="relative">
-              <Mail className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-muted" />
+              <Mail className="absolute top-1/2 left-5 h-4 w-4 -translate-y-1/2 text-ash" />
               <input
                 id="email"
                 autoComplete="email"
@@ -212,7 +212,7 @@ export function LoginForm() {
                 placeholder={copy.auth.emailPlaceholder}
                 required
                 disabled={loading}
-                className="w-full rounded-2xl border border-border bg-surface py-4 pr-4 pl-11 text-ghost-white placeholder:text-muted outline-none transition-colors focus:border-violet/50"
+                className="h-14 w-full rounded-full border border-transparent bg-fog pr-5 pl-12 text-ink placeholder:text-ash-text outline-none transition-[background-color,border-color,box-shadow] duration-300 focus:border-ember/40 focus:bg-paper focus:shadow-[var(--ring-ember)] focus-visible:!outline-none disabled:opacity-60"
               />
             </div>
 
@@ -223,7 +223,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={loading || !email}
-              className="mt-6 w-full rounded-2xl bg-violet py-4 font-heading font-semibold text-midnight transition-all hover:bg-violet-dim disabled:opacity-40"
+              className="mt-5 h-14 w-full rounded-full bg-ink font-medium tracking-[-0.01em] text-paper transition-[background-color,transform] duration-200 hover:bg-[#24252A] active:scale-[0.98] disabled:opacity-40 disabled:active:scale-100"
             >
               {loading ? copy.auth.sending : copy.auth.sendCode}
             </button>
@@ -238,7 +238,7 @@ export function LoginForm() {
             className="mt-10"
           >
             {message && (
-              <p className="mb-6 text-sm text-neon-green">{message}</p>
+              <p className="mb-6 flex items-center gap-2 text-sm text-resolved-text"><span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-resolved" />{message}</p>
             )}
 
             <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
@@ -257,7 +257,7 @@ export function LoginForm() {
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   disabled={loading}
-                  className="h-14 w-full max-w-[52px] rounded-xl border border-border bg-surface text-center text-xl font-bold text-ghost-white outline-none transition-colors focus:border-violet/50 md:h-16 md:max-w-[60px] md:text-2xl"
+                  className="tabular h-14 w-full max-w-[52px] rounded-[12px] border border-transparent bg-fog text-center font-heading text-xl font-medium text-ink outline-none transition-[background-color,border-color,box-shadow] duration-200 focus:border-ember/40 focus:bg-paper focus:shadow-[var(--ring-ember)] focus-visible:!outline-none md:h-16 md:max-w-[56px] md:text-2xl"
                 />
               ))}
             </div>
@@ -267,14 +267,14 @@ export function LoginForm() {
             )}
 
             {loading && (
-              <p className="mt-4 text-sm text-muted">{copy.auth.verifying}</p>
+              <p className="mono-label mt-4 flex items-center gap-2 text-ash-text"><span aria-hidden className="ember-dot !h-1.5 !w-1.5" />{copy.auth.verifying}</p>
             )}
 
             <button
               type="button"
               onClick={() => void requestOtp()}
               disabled={loading}
-              className="mt-4 text-sm text-violet transition-colors hover:text-violet-glow disabled:opacity-40"
+              className="mt-5 inline-flex min-h-11 items-center text-sm font-medium text-ink underline decoration-line underline-offset-[5px] transition-[text-decoration-color] hover:decoration-ink disabled:opacity-40"
             >
               {copy.auth.resendCode}
             </button>
@@ -286,7 +286,7 @@ export function LoginForm() {
                 setOtp(["", "", "", "", "", ""]);
                 setError("");
               }}
-              className="mt-4 block text-sm text-muted transition-colors hover:text-ghost-white"
+              className="block min-h-11 text-sm text-graphite transition-colors hover:text-ink"
             >
               {copy.auth.useDifferentEmail}
             </button>

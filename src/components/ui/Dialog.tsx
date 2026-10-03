@@ -69,7 +69,7 @@ export function Dialog({ open, onClose, labelledBy, children, busy = false, clas
         }
       }}
       className={cn(
-        "fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-[640px] max-h-[90dvh] overflow-hidden rounded-2xl border border-border bg-navy p-0 text-ghost-white shadow-2xl backdrop:bg-black/65",
+        "fixed inset-0 m-auto w-[calc(100%-2rem)] max-w-[640px] max-h-[90dvh] overflow-hidden rounded-[18px] border border-line bg-paper p-0 text-ink shadow-[var(--shadow-float)] backdrop:bg-ink/25 backdrop:backdrop-blur-[2px]",
         className,
       )}
     >

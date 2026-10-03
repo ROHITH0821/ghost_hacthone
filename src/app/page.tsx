@@ -3,12 +3,15 @@ import { Footer } from "@/components/layout/Footer";
 import { Hero } from "@/components/landing/Hero";
 import { ProgramSteps } from "@/components/landing/ProgramSteps";
 import { SampleReport } from "@/components/landing/SampleReport";
-import { FounderTestimonial } from "@/components/landing/FounderTestimonial";
-import { Pricing } from "@/components/landing/Pricing";
+import { ShopperSwarm } from "@/components/landing/ShopperSwarm";
+import { FrictionMatrix } from "@/components/landing/FrictionMatrix";
 import { AgencySection } from "@/components/landing/AgencySection";
 import { FAQ } from "@/components/landing/FAQ";
 import { CTASection } from "@/components/landing/CTASection";
 import { copy } from "@/lib/copy";
+import { INTRO_GATE_SCRIPT } from "@/components/landing/intro/script";
+import { SmoothScroll } from "@/components/landing/fx/SmoothScroll";
+import { CursorTrail } from "@/components/landing/fx/CursorTrail";
 
 /** FAQPage structured data — lets the answers surface in search results. */
 const faqJsonLd = {
@@ -24,6 +27,10 @@ const faqJsonLd = {
 export default function HomePage() {
   return (
     <main id="main-content" tabIndex={-1} className="relative min-h-screen">
+      {/* Decides before first paint whether the once-per-session intro plays. */}
+      <script dangerouslySetInnerHTML={{ __html: INTRO_GATE_SCRIPT }} />
+      <SmoothScroll />
+      <CursorTrail />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
@@ -32,8 +39,8 @@ export default function HomePage() {
       <Hero />
       <ProgramSteps />
       <SampleReport />
-      <FounderTestimonial />
-      <Pricing />
+      <ShopperSwarm />
+      <FrictionMatrix />
       <AgencySection />
       <FAQ />
       <CTASection />
