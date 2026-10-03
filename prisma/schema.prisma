@@ -1,0 +1,281 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (pgBouncer, port 6543) for the app at runtime.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432) for migrations / `prisma db push`.
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  /// Early access gate: "pending" until you set "approved" in Supabase.
+  accessStatus String    @default("pending")
+  approvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  otpTokens        OtpToken[]
+  missions         Mission[]
+  sites            Site[]
+  entitlements     Entitlement[]
+  fixStatuses      FixStatus[]
+  notificationLogs NotificationLog[]
+  agencyWorkspace  AgencyWorkspace?
+}
+
+model AgencyWorkspace {
+  id        String   @id @default(cuid())
+  ownerId   String   @unique
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clients      Client[]
+  brandProfile BrandProfile?
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  workspace      AgencyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name           String
+  primaryDomain  String
+  referenceId    String?
+  defaults       Json?
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  sites    Site[]
+  missions Mission[]
+
+  @@unique([workspaceId, primaryDomain])
+  @@index([workspaceId])
+}
+
+model BrandProfile {
+  id           String          @id @default(cuid())
+  workspaceId  String          @unique
+  workspace    AgencyWorkspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agencyName   String
+  logoUrl      String?
+  contactEmail String?
+  contactPhone String?
+  website      String?
+  accentColor  String?
+  updatedAt    DateTime        @updatedAt
+}
+
+model OtpToken {
+  id        String   @id @default(cuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model Site {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId        String?
+  client          Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  canonicalDomain String
+  displayName     String?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  dataSources   DataSourceConnection[]
+  oauthAttempts DataSourceOAuth[]
+  missions      Mission[]
+  entitlements  Entitlement[]
+  fixStatuses   FixStatus[]
+
+  @@unique([userId, canonicalDomain])
+  @@index([userId])
+  @@index([clientId])
+  // Sites dashboard orders a user's sites by recency.
+  @@index([userId, updatedAt(sort: Desc)])
+}
+
+model Entitlement {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siteId           String?
+  site             Site?     @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  planId           String
+  status           String    @default("active")
+  boundUrl         String?
+  freeScansUsed    Int       @default(0)
+  rescansRemaining Int       @default(0)
+  rescansExpiresAt DateTime?
+  auditsUsedPeriod Int       @default(0)
+  auditsLimit      Int?
+  periodResetAt    DateTime?
+  purchasedAt      DateTime?
+  amountInr        Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([siteId])
+}
+
+model Mission {
+  id                String   @id
+  url               String
+  domain            String
+  status            String   @default("running")
+  auditType         String   @default("quick")
+  baselineMissionId String?
+  context           Json?
+  auditConfigSnapshot Json?
+  // Live scan progress for polling across serverless instances.
+  progress          Json?
+  // The finished GhostReport, persisted so results survive restarts / are
+  // retrievable across instances (not just from the in-memory cache).
+  report            Json?
+  competitorCandidates Json?
+  competitorCrawlPacks Json?
+  competitorIntelligence Json?
+  pdfUrl            String?
+  pdfUploadedAt     DateTime?
+  previewUrl        String?
+  idempotencyKey    String?  @unique
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  siteId            String?
+  site              Site?    @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  clientId          String?
+  client            Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  fixStatuses       FixStatus[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([userId])
+  @@index([siteId])
+  @@index([clientId])
+  @@index([baselineMissionId])
+  // Every dashboard list is "this user's missions, newest first".
+  @@index([userId, createdAt(sort: Desc)])
+  // Status filters on the audits page and the running-queue lookup.
+  @@index([userId, status, createdAt(sort: Desc)])
+  // Per-client latest mission (agency clients list / client detail).
+  @@index([clientId, createdAt(sort: Desc)])
+}
+
+model FixStatus {
+  id                  String    @id @default(cuid())
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  siteId              String
+  site                Site      @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  missionId           String
+  mission             Mission   @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  sourceKey           String
+  leakId              String?
+  fixId               String?
+  kind                String
+  title               String
+  severity            String?
+  category            String?
+  pageUrl             String?
+  shopperQuote        String?
+  fixContent          String?
+  status              String    @default("recommended")
+  note                String?
+  implementedAt       DateTime?
+  verifiedAt          DateTime?
+  verifiedByMissionId String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  developerShare      FixShare?
+
+  @@unique([missionId, sourceKey])
+  @@index([userId, siteId, status])
+  // Fixes board + overview counts filter by user and status without a site.
+  @@index([userId, status])
+}
+
+// A deliberately published, single-fix snapshot; never a public report link.
+model FixShare {
+  id        String    @id
+  fixId     String    @unique
+  fix       FixStatus @relation(fields: [fixId], references: [id], onDelete: Cascade)
+  snapshot  Json
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model NotificationLog {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type   String
+  refId  String
+  sentAt DateTime @default(now())
+
+  @@unique([userId, type, refId])
+  @@index([userId])
+}
+
+// One optional provider per website; sensitive credentials are ciphertext only.
+model DataSourceConnection {
+  id               String   @id @default(cuid())
+  siteId           String
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  provider         String   @default("ga4")
+  refreshToken     String
+  propertyId       String
+  propertyName     String
+  streamId         String
+  hostname         String
+  timeZone         String
+  status           String   @default("connected")
+  lastError        String?
+  snapshot         Json?
+  lastSyncedAt     DateTime?
+  lastAttemptAt    DateTime?
+  nextSyncAt       DateTime @default(now())
+  leaseToken       String?
+  leaseUntil       DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([siteId, provider])
+  @@index([status, nextSyncAt])
+}
+
+model DataSourceOAuth {
+  id               String   @id
+  siteId           String
+  site             Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  userId           String
+  stateHash        String   @unique
+  browserHash      String
+  verifier         String
+  refreshToken     String?
+  phase            String   @default("pending")
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  @@index([siteId])
+  @@index([expiresAt])
+}

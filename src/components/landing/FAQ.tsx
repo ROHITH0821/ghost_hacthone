@@ -1,0 +1,4 @@
+import { copy } from "@/lib/copy";
+export function FAQ() {
+  return <section id="faq" className="section-pad product-section"><div className="product-container grid gap-10 lg:grid-cols-[.8fr_1.2fr]"><div><p className="eyebrow mb-4">Before your first audit</p><h2 className="display-lg font-medium">A few good<br />questions.</h2></div><div className="divide-y divide-border">{copy.landing.faq.items.map(faq=><details key={faq.q} className="group py-5"><summary className="flex min-h-11 list-none items-center justify-between gap-4 text-base font-medium [&::-webkit-details-marker]:hidden">{faq.q}<span aria-hidden className="text-xl text-violet transition-transform group-open:rotate-45">+</span></summary><p className="pt-3 text-sm leading-relaxed text-muted-light">{faq.a}</p></details>)}</div></div></section>;
+}

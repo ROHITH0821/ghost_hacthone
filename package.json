@@ -1,0 +1,51 @@
+{
+  "name": "ghost",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "pdf:backfill": "tsx scripts/backfill-pdfs.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@prisma/client": "^5.22.0",
+    "@sparticuz/chromium": "^143.0.4",
+    "@supabase/supabase-js": "^2.110.1",
+    "@tanstack/react-query": "^5.101.4",
+    "@vercel/analytics": "^2.0.1",
+    "cheerio": "^1.2.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.15.0",
+    "jose": "^6.2.3",
+    "lucide-react": "^0.511.0",
+    "next": "^15.3.3",
+    "playwright": "^1.61.1",
+    "playwright-core": "^1.61.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "resend": "^6.17.1",
+    "tailwind-merge": "^3.3.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^15.3.3",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.0",
+    "typescript": "^5"
+  }
+}

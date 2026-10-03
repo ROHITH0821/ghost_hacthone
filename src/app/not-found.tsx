@@ -1,0 +1,3 @@
+import Link from 'next/link';
+import { GhostLogo } from '@/components/ui/GhostLogo';
+export default function NotFound(){return <main id="main-content" className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-5 p-6 text-center"><GhostLogo /><p className="eyebrow">404 · Page not found</p><h1 className="font-heading text-3xl font-medium">This page isn’t here.</h1><p className="text-sm text-muted-light">The link may be incomplete, or the page may have moved.</p><Link href="/dashboard/overview" className="mt-3 rounded-lg bg-violet px-5 py-3 text-sm font-semibold text-midnight">Go to workspace</Link></main>;}
