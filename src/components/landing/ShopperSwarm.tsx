@@ -96,14 +96,22 @@ export function ShopperSwarm() {
         </motion.div>
 
         {/* Scroll track (desktop): tall enough for one segment per shopper. */}
-        <div
-          ref={track}
-          className="relative"
-          style={pinned ? { height: `calc(100svh + ${(SHOPPERS.length - 1) * 70}svh)` } : undefined}
-        >
-        <div className={cn(pinned && "sticky top-[84px] flex h-[calc(100svh-84px)] flex-col justify-center pb-6")}>
+        {/* Layout for the pinned mode lives in CSS (same media query as `pinned`),
+            so server markup already has its final height — no post-hydration jump. */}
+        <style>{`
+          .ss-progress { display: none; }
+          @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+            .ss-track { height: calc(100svh + ${(SHOPPERS.length - 1) * 70}svh); }
+            .ss-stage { position: sticky; top: 84px; height: calc(100svh - 84px); display: flex; flex-direction: column; justify-content: center; padding-bottom: 24px; overflow: hidden; }
+            .ss-tabs { margin-top: 0 !important; }
+            .ss-progress { display: flex; }
+            .ss-panel { margin-top: 1.5rem !important; width: 100%; max-width: min(1140px, calc((100svh - 300px) * 2.2)) !important; }
+          }
+        `}</style>
+        <div ref={track} className="ss-track relative">
+        <div className="ss-stage">
         {/* 2. Archetype Tab Row */}
-        <div className={cn(pinned ? "mt-0" : "mt-8 sm:mt-12")}>
+        <div className="ss-tabs mt-8 sm:mt-12">
           <div
             role="tablist"
             aria-label="Select an AI shopper archetype"
@@ -163,8 +171,8 @@ export function ShopperSwarm() {
               );
             })}
           </div>
-          {pinned && (
-            <div className="mt-4 flex items-center gap-4">
+          {(
+            <div aria-hidden={!pinned} className="ss-progress mt-4 items-center gap-4">
               <div className="h-[2px] flex-1 overflow-hidden rounded-full bg-line">
                 <div className="heat-gradient h-full origin-left rounded-full" style={{ transform: `scaleX(${Math.max(0.02, progress)})` }} />
               </div>
@@ -176,10 +184,7 @@ export function ShopperSwarm() {
         </div>
 
         {/* 3. Interactive Illustrated Card Display with Ghost Scan Sweep */}
-        <div
-          className={cn("mx-auto max-w-[1140px]", pinned ? "mt-6 w-full" : "mt-8")}
-          style={pinned ? { maxWidth: "min(1140px, calc((100svh - 300px) * 2.2))" } : undefined}
-        >
+        <div className="ss-panel mx-auto mt-8 max-w-[1140px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}

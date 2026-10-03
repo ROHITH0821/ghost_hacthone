@@ -98,19 +98,21 @@ const LEAKS: LeakItem[] = [
   },
 ];
 
-/** Animated audio equalizer bars indicating live customer voice telemetry */
+/** Animated audio equalizer bars indicating live customer voice telemetry.
+ *  Scale only — a changing height was resizing the cards and shifting the page. */
 function AudioWaveform({ isAlert = true }: { isAlert?: boolean }) {
   return (
-    <div className="flex items-center gap-[2.5px] py-0.5" aria-hidden="true">
+    <div className="flex h-4 w-5 shrink-0 items-end justify-end gap-[2.5px]" aria-hidden="true">
       {[10, 16, 9, 14, 7].map((h, i) => (
         <motion.span
           key={i}
           className={cn(
-            "w-[2px] rounded-full",
+            "w-[2px] origin-bottom rounded-full",
             isAlert ? "bg-ember/80" : "bg-resolved/80"
           )}
+          style={{ height: h }}
           animate={{
-            height: [h * 0.35, h, h * 0.45, h * 0.85, h * 0.35],
+            scaleY: [0.35, 1, 0.45, 0.85, 0.35],
           }}
           transition={{
             duration: 1.1,
@@ -438,8 +440,6 @@ export function FrictionMatrix() {
                     onClick={() => setActiveLeakId(isSelected ? null : leak.id)}
                     onMouseEnter={() => setHoveredLeakId(leak.id)}
                     onMouseLeave={() => setHoveredLeakId(null)}
-                    whileHover={{ y: -3 }}
-                    transition={{ duration: 0.2, ease: EASE }}
                     className={cn(
                       "group relative cursor-pointer overflow-hidden rounded-[22px] border p-6 transition-all duration-300",
                       isOptimized
