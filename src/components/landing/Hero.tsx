@@ -9,6 +9,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { dashboardNewAuditHref } from "@/lib/auth/new-audit-href";
 import { redirectToLogin } from "@/lib/auth/redirect-to-login";
 import { useIntroReady } from "./intro/gate";
+import { HeroBackdrop } from "./HeroBackdrop";
 import { normalizeWebsiteInput } from "@/lib/website-input";
 
 const EXAMPLE_DOMAINS = ["yourbusiness.com", "bridalstudio.in", "smiledental.co", "northbakery.com", "lumenyoga.studio"];
@@ -66,11 +67,7 @@ export function Hero() {
   }
   return (
     <section className="section-pad relative isolate flex min-h-[100svh] items-center overflow-hidden pb-20 pt-32 md:pt-36">
-      {/* Quiet backdrop: a soft spectral wash and hairline rules, nothing competing with the input. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-[38%] h-[560px] w-[min(1100px,120vw)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(238,241,255,0.95),rgba(238,241,255,0))]" />
-        <div className="absolute inset-0 [background-image:linear-gradient(to_right,rgba(10,10,12,0.035)_1px,transparent_1px)] [background-size:80px_100%] [mask-image:radial-gradient(ellipse_at_center,#000_20%,transparent_70%)]" />
-      </div>
+      <HeroBackdrop />
 
       <div className="mx-auto flex w-full max-w-[1040px] flex-col items-center text-center">
         <p
@@ -108,7 +105,8 @@ export function Hero() {
 
         <form onSubmit={start} style={{ ["--d" as string]: 2 }} className="hero-fade mt-10 w-full max-w-[640px]" noValidate>
           <label htmlFor="hero-url" className="sr-only">Your website</label>
-          <div className="flex flex-col gap-2.5 sm:h-16 sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:border sm:border-line sm:bg-paper sm:p-1.5 sm:pl-6 sm:shadow-[0_1px_2px_rgba(10,10,12,0.04),0_18px_44px_-22px_rgba(10,10,12,0.28)] sm:transition-[border-color,box-shadow] sm:duration-300 sm:focus-within:border-ember/40 sm:focus-within:shadow-[var(--ring-ember)]">
+          <div className="flex flex-col gap-2.5 sm:relative sm:h-16 sm:flex-row sm:items-center sm:gap-2 sm:rounded-full sm:border sm:border-line sm:bg-paper sm:p-1.5 sm:pl-6 sm:shadow-[0_1px_2px_rgba(10,10,12,0.04),0_18px_44px_-22px_rgba(10,10,12,0.28)] sm:transition-[border-color,box-shadow] sm:duration-300 sm:focus-within:border-ember/40 sm:focus-within:shadow-[var(--ring-ember)]">
+            <span aria-hidden className="hb-sweep hidden sm:block" />
             <div className="relative flex h-14 min-w-0 flex-1 items-center rounded-full border border-line bg-paper px-5 shadow-[0_1px_2px_rgba(10,10,12,0.04)] transition-[border-color,box-shadow] duration-300 focus-within:border-ember/40 focus-within:shadow-[var(--ring-ember)] sm:h-full sm:rounded-none sm:border-0 sm:px-0 sm:shadow-none sm:focus-within:shadow-none">
               <Globe2 aria-hidden className="h-[18px] w-[18px] shrink-0 text-ash" strokeWidth={1.6} />
               <input id="hero-url" type="text" inputMode="url" autoCapitalize="none" autoCorrect="off" autoComplete="url" value={url} onChange={e => { setUrl(e.target.value); setError(""); }} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} placeholder={placeholder} aria-invalid={!!error} aria-describedby={error ? "hero-error" : "hero-note"} className="h-full w-full min-w-0 bg-transparent pl-3 text-left text-[17px] tracking-[-0.01em] text-ink outline-none focus-visible:!outline-none" />

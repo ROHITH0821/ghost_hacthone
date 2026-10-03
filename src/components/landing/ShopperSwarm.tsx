@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion, useScroll, useMotionValueEvent } from "framer-motion";
 import {
   ArrowRight,
   Clock,
@@ -23,17 +23,47 @@ export function ShopperSwarm() {
   const startScan = useStartScan();
 
   const current = SHOPPERS.find((s) => s.id === selectedId) || SHOPPERS[0];
+  const currentIndex = Math.max(0, SHOPPERS.findIndex((s) => s.id === current.id));
+
+  // Desktop: the stage pins while the page scrolls through one segment per shopper.
+  const track = useRef<HTMLDivElement>(null);
+  const [pinned, setPinned] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px) and (min-height: 700px)");
+    const sync = () => setPinned(mq.matches && !reducedMotion);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, [reducedMotion]);
+  const { scrollYProgress } = useScroll({ target: track, offset: ["start start", "end end"] });
+  const [progress, setProgress] = useState(0);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (!pinned) return;
+    setProgress(v);
+    const i = Math.min(SHOPPERS.length - 1, Math.max(0, Math.floor(v * SHOPPERS.length)));
+    setSelectedId((prev) => (prev === SHOPPERS[i].id ? prev : SHOPPERS[i].id));
+  });
+
+  // Selecting a tab on desktop scrolls to that shopper's segment, so tabs and scroll agree.
+  const select = useCallback((index: number) => {
+    setSelectedId(SHOPPERS[index].id);
+    const el = track.current;
+    if (!pinned || !el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY;
+    const travel = el.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: top + ((index + 0.5) / SHOPPERS.length) * travel });
+  }, [pinned]);
 
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
       const nextIndex = (index + 1) % SHOPPERS.length;
-      setSelectedId(SHOPPERS[nextIndex].id);
+      select(nextIndex);
       document.getElementById(`tab-${SHOPPERS[nextIndex].id}`)?.focus();
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
       const prevIndex = (index - 1 + SHOPPERS.length) % SHOPPERS.length;
-      setSelectedId(SHOPPERS[prevIndex].id);
+      select(prevIndex);
       document.getElementById(`tab-${SHOPPERS[prevIndex].id}`)?.focus();
     }
   };
@@ -65,8 +95,15 @@ export function ShopperSwarm() {
           </p>
         </motion.div>
 
+        {/* Scroll track (desktop): tall enough for one segment per shopper. */}
+        <div
+          ref={track}
+          className="relative"
+          style={pinned ? { height: `calc(100svh + ${(SHOPPERS.length - 1) * 70}svh)` } : undefined}
+        >
+        <div className={cn(pinned && "sticky top-[84px] flex h-[calc(100svh-84px)] flex-col justify-center pb-6")}>
         {/* 2. Archetype Tab Row */}
-        <div className="mt-8 sm:mt-12">
+        <div className={cn(pinned ? "mt-0" : "mt-8 sm:mt-12")}>
           <div
             role="tablist"
             aria-label="Select an AI shopper archetype"
@@ -84,7 +121,7 @@ export function ShopperSwarm() {
                   aria-selected={isSelected}
                   aria-controls={`panel-${shopper.id}`}
                   tabIndex={isSelected ? 0 : -1}
-                  onClick={() => setSelectedId(shopper.id)}
+                  onClick={() => select(idx)}
                   onKeyDown={(e) => handleKeyDown(e, idx)}
                   className={cn(
                     "group relative flex shrink-0 items-center gap-3 rounded-[16px] border px-4 py-3.5 text-left transition-all duration-300 sm:px-5 sm:py-4 cursor-pointer",
@@ -126,10 +163,23 @@ export function ShopperSwarm() {
               );
             })}
           </div>
+          {pinned && (
+            <div className="mt-4 flex items-center gap-4">
+              <div className="h-[2px] flex-1 overflow-hidden rounded-full bg-line">
+                <div className="heat-gradient h-full origin-left rounded-full" style={{ transform: `scaleX(${Math.max(0.02, progress)})` }} />
+              </div>
+              <span className="mono-label shrink-0 text-ash-text">
+                <span className="text-ink tabular">{String(currentIndex + 1).padStart(2, "0")}</span> / {String(SHOPPERS.length).padStart(2, "0")} · Scroll to meet the next shopper
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 3. Interactive Illustrated Card Display with Ghost Scan Sweep */}
-        <div className="mt-8 max-w-[1140px] mx-auto">
+        <div
+          className={cn("mx-auto max-w-[1140px]", pinned ? "mt-6 w-full" : "mt-8")}
+          style={pinned ? { maxWidth: "min(1140px, calc((100svh - 300px) * 2.2))" } : undefined}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id}
@@ -376,6 +426,9 @@ export function ShopperSwarm() {
               </motion.div>
             </motion.div>
           </AnimatePresence>
+        </div>
+
+        </div>
         </div>
 
         {/* 4. Single CTA below the section */}

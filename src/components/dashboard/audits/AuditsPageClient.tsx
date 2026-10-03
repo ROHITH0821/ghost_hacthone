@@ -6,7 +6,6 @@ import { memo, useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { Download } from "lucide-react";
-import { LocalTime } from "@/components/ui/LocalTime";
 import { BulkSelectBar } from "@/components/dashboard/BulkSelectBar";
 import { FilterBar } from "@/components/dashboard/filters/FilterBar";
 import { DebouncedSearchInput } from "@/components/dashboard/filters/DebouncedSearchInput";
@@ -135,9 +134,6 @@ const AuditTableRow = memo(function AuditTableRow({
         {intelPending && (
           <p className="mt-1 hidden text-xs text-violet lg:block">In progress</p>
         )}
-      </td>
-      <td className="hidden px-4 py-3 text-sm text-muted-light lg:table-cell">
-        <LocalTime date={mission.createdAt} />
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-3">
@@ -407,7 +403,6 @@ export function AuditsPageClient() {
                   <th className="hidden px-4 py-3 md:table-cell">{copy.dashboardAudits.columns.depth}</th>
                   <th className="px-4 py-3">{copy.dashboardAudits.columns.score}</th>
                   <th className="px-4 py-3">{copy.dashboardAudits.columns.status}</th>
-                  <th className="hidden px-4 py-3 lg:table-cell">{copy.dashboardAudits.columns.started}</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>

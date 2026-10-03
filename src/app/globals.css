@@ -342,7 +342,7 @@ h6 {
 .intro-root { display: none; }
 html[data-intro] .intro-root { display: block; }
 /* Failsafe: if the timeline never boots, the cover still lets go. */
-html[data-intro="play"] .intro-root { animation: introFailsafe 1ms linear 4200ms forwards; }
+html[data-intro="play"] .intro-root { animation: introFailsafe 1ms linear 7500ms forwards; }
 @keyframes introFailsafe { to { opacity: 0; visibility: hidden; pointer-events: none; } }
 @keyframes introMist0 { 0% { opacity: 0; transform: translate(var(--mx), var(--my)) scale(1.5); } 45% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 0) scale(0.25); } }
 @keyframes introMist1 { 0% { opacity: 0; transform: translate(var(--mx), var(--my)) scale(1.4); } 50% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 0) scale(0.25); } }
