@@ -34,6 +34,8 @@ export interface ShopperPersona {
   image: string;
   leftImage: string;
   rightImage: string;
+  charLeftImage: string;
+  charRightImage: string;
 }
 
 export const SHOPPERS: ShopperPersona[] = [
@@ -74,6 +76,8 @@ export const SHOPPERS: ShopperPersona[] = [
     image: "/shoppers/budget-hunter-left-trans.png",
     leftImage: "/shoppers/budget-hunter-left-trans.png",
     rightImage: "/shoppers/budget-hunter-right-trans.png",
+    charLeftImage: "/shoppers/chars/budget-hunter-left-2x.png",
+    charRightImage: "/shoppers/chars/budget-hunter-right-2x.png",
   },
   {
     id: "trust-skeptic",
@@ -112,6 +116,8 @@ export const SHOPPERS: ShopperPersona[] = [
     image: "/shoppers/trust-skeptic-left-trans.png",
     leftImage: "/shoppers/trust-skeptic-left-trans.png",
     rightImage: "/shoppers/trust-skeptic-right-trans.png",
+    charLeftImage: "/shoppers/chars/trust-skeptic-left-2x.png",
+    charRightImage: "/shoppers/chars/trust-skeptic-right-2x.png",
   },
   {
     id: "speed-runner",
@@ -155,6 +161,8 @@ export const SHOPPERS: ShopperPersona[] = [
     image: "/shoppers/speed-runner-left-trans.png",
     leftImage: "/shoppers/speed-runner-left-trans.png",
     rightImage: "/shoppers/speed-runner-right-trans.png",
+    charLeftImage: "/shoppers/chars/speed-runner-left-2x.png",
+    charRightImage: "/shoppers/chars/speed-runner-right-2x.png",
   },
   {
     id: "lost-explorer",
@@ -193,6 +201,8 @@ export const SHOPPERS: ShopperPersona[] = [
     image: "/shoppers/lost-explorer-left-trans.png",
     leftImage: "/shoppers/lost-explorer-left-trans.png",
     rightImage: "/shoppers/lost-explorer-right-trans.png",
+    charLeftImage: "/shoppers/chars/lost-explorer-left-2x.png",
+    charRightImage: "/shoppers/chars/lost-explorer-right-2x.png",
   },
   {
     id: "comparison-hawk",
@@ -231,5 +241,7 @@ export const SHOPPERS: ShopperPersona[] = [
     image: "/shoppers/comparison-hawk-left-trans.png",
     leftImage: "/shoppers/comparison-hawk-left-trans.png",
     rightImage: "/shoppers/comparison-hawk-right-trans.png",
+    charLeftImage: "/shoppers/chars/comparison-hawk-left-2x.png",
+    charRightImage: "/shoppers/chars/comparison-hawk-right-2x.png",
   },
 ];
